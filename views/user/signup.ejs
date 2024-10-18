@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Makeup E-Commerce Sign Up</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #71b7e6, #9b59b6);
+            overflow: hidden;
+        }
+
+        .signup-container {
+            background-image: url('makeup-background.jpg');
+            background-size: cover;
+            background-position: center;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .signup-box {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            animation: slide-in 0.8s ease-out;
+        }
+
+        .signup-box h2 {
+            font-size: 24px;
+            color: #070707;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            color: #555;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+            transition: 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #e85a70;
+        }
+
+        .signup-btn {
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            width: 100%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s ease;
+        }
+
+        .signup-btn:hover {
+            background-color: #8e44ad;
+            transform: scale(1.05);
+        }
+
+       
+        .google-signup p  {
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+       
+
+        .signin-option {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .signin-option a {
+            color: #9b59b6;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s ease;
+        }
+
+        .signin-option a:hover {
+            color: #d74a60;
+        }
+        .error-message{
+            color:red;
+            font-size: 0.75rem;
+            display: none;
+        }
+        .alert{
+            color: red;
+        }
+
+        @keyframes slide-in {
+            0% {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-box">
+            <h2>Create Account</h2>
+            <form id="signform" method="post" action="/signup">
+                <div class="input-group">
+                    <label for="full-name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                    <div id="error1" class="error-message"></div>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                    <div id="error2" class="error-message"></div>
+
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" name="phone" required>
+                    <div id="error3" class="error-message"></div>
+
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                    <div id="error4" class="error-message"></div>
+
+                </div>
+
+                <div class="input-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="cPassword" name="cPassword" required>
+                    <div id="error5" class="error-message"></div>
+
+                </div>
+                <% if (locals.message && message.length>0) { %>
+                    <div class="alert aler"><%= message %></div>
+                <% } %>
+
+                <button type="submit" class="signup-btn">Sign Up</button>
+            </form>
+            <div class="google-signup">
+                <p>or sign up with</p>
+                <a href="/auth/google">Sign Up with Google</a>
+            </div>
+
+            <!-- Sign-in Option -->
+            <div class="signin-option">
+                <p>Already have an account? <a href="/login">Log in</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+
+    const nameid=document.getElementById('name');
+    const emailid=document.getElementById('email');
+    const phoneid=document.getElementById('phone');
+    const passid=document.getElementById('password');
+    const cpassid=document.getElementById('cPassword');
+    const error1= document.getElementById('error1');
+    const error2= document.getElementById('error2');
+    const error3= document.getElementById('error3');
+    const error4= document.getElementById('error4');
+    const error5= document.getElementById('error5');
+    const signform= document.getElementById('signform');
+
+    function nameValidateChecking(e){
+        const nameval=nameid.value;
+        const namepatern=/^[A-Za-z\s]+$/;
+
+        if(nameval.trim()===''){
+            error1.style.display='block';
+            error1.innerHTML="Please Enter a Valid Name.";
+
+        }else if(!namepatern.test(nameval)){
+            error1.style.display='block';
+            error1.innerHTML='Name can only contain alphabets and sapces.'
+        }else{
+            error1.style.display='none';
+            error1.innerHTML='';
+        }
+    }
+
+    function emailValidateChecking(e){
+        const emailval=emailid.value;
+        const emailpatern=/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if(!emailpatern.test(emailval)){
+            error2.style.display='block';
+            error2.innerHTML="Invalid Format";
+        }else{
+            error2.style.display='none';
+            error2.innerHTML='';
+        }
+    }
+
+
+    function phoneValidateChecking(e){
+        const phoneval=phoneid.value;
+        if(phoneval.trim()===''){
+            error3.style.display='block';
+            error3.innerHTML="Please Enter a Valid phone number";
+
+        }else if(phoneval.length<10||phoneval.length>10){
+            error3.style.display='block';
+            error3.innerHTML='Enter 10 digit'
+        }else{
+            error3.style.display='none';
+            error3.innerHTML='';
+        }
+    }
+
+
+    function passValidateChecking(e){
+        const passval=passid.value;
+        const cpassval=cpassid.value;
+        const passpatern=/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+        if(!passpatern.test(passval)){
+            error4.style.display='block';
+            error4.innerHTML="Password must be at least 8 characters long and contain at least one alphabet, one number, and one special character.";
+        }else{
+            error4.style.display='none';
+            error4.innerHTML='';
+        }
+
+        if(passval!=cpassval){
+            error5.style.display='block';
+            error5.innerHTML='Password and Confirm Password do not match. Please re-enter';
+        }else{
+            error5.style.display='none';
+            error5.innerHTML='';
+        }
+    }
+
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        signform.addEventListener('submit',(e)=>{
+            nameValidateChecking(); 
+            emailValidateChecking(); 
+            phoneValidateChecking(); 
+            passValidateChecking(); 
+
+            if(!nameid||!emailid||!phoneid||!passid||!error1||!error2||!error2||!error4||!error5||!signform){
+                console.log("One or more elements not found")
+            }
+
+            if(error1.innerHTML||error2.innerHTML||error3.innerHTML||error4.innerHTML||error5.innerHTML){
+                e.preventDefault();
+            }
+        })
+    })
+</script>
