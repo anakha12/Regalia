@@ -40,8 +40,7 @@ const loadSignup= async(req,res)=>{
 const loadLogin= async(req,res)=>{
     try {
         if(!req.session.user){
-            const message = req.session.message || ""; // Initialize with an empty string if no message
-            req.session.message = "";
+            const message = ""; // Initialize with an empty string if no message
             res.render('login',{message});
         }else{
             res.redirect('/');
@@ -145,7 +144,7 @@ const verifyOtp = async (req, res) => {
         console.log("Received OTP:", otp);
 
         // Ensure OTP and session OTP are both strings before comparison
-        if (String(otp) == String(req.session.userOtp)) {
+        if (String(otp) === String(req.session.userOtp)) {
             const user = req.session.userData;
             const passwordHash = await securePassword(user.password);
 
@@ -154,12 +153,14 @@ const verifyOtp = async (req, res) => {
                 email: user.email,
                 phone: user.phone,
                 password: passwordHash,
+                googleId: user.googleId || null 
             });
 
             await saveUserData.save();
 
             // Save user ID to session
             req.session.user = saveUserData._id;
+           
             res.json({ success: true, message: "OTP verified successfully", redirectUrl: '/' });
         } else {
             res.status(400).json({ success: false, message: "Invalid OTP, please try again" });
@@ -208,7 +209,7 @@ const login=async(req,res)=>{
             return res.render('login',{message:"User is Blocked by admin"})
         }
 
-        const passwordMatch= await bcrypt.compare(password,findUser.password);
+        const passwordMatch=  bcrypt.compare(password,findUser.password);
 
         if(!passwordMatch){
             return res.render("login",{message:"Incorrect Password"})

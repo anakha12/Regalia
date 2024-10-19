@@ -26,6 +26,7 @@ const userSchema= new Schema({
     googleId:{
         type:String,
         unique:true,
+        sparse:true
     },
     password:{
         type:String,
@@ -85,5 +86,5 @@ const userSchema= new Schema({
     }]
 })
 
-const User=mongoose.model("User",userSchema);
+const User=mongoose.model("User2",userSchema);
 module.exports=User

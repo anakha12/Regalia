@@ -24,7 +24,14 @@ router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 
 router.get('/auth/google/callback', 
     passport.authenticate('google', { failureRedirect: '/signup' }), 
     (req, res) => {
+        req.session.user = {
+            _id: req.user._id,
+            name: req.user.name,
+            email: req.user.email,
+            googleId: req.user.googleId  // or other relevant fields
+        };
         // Successful authentication, redirect to home page
+
         res.redirect('/');
     }
 );
