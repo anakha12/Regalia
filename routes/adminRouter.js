@@ -4,6 +4,7 @@ const adminController= require("../controllers/admin/adminController");
 const customerController=require('../controllers/admin/customerController');
 const categoryController=require('../controllers/admin/categoryController');
 const brandController=require("../controllers/admin/brandController");
+const productController=require("../controllers/admin/productController");
 const {userAuth,adminAuth}=require('../middlewares/auth');
 const multer=require("multer");
 const storage=require('../helpers/multer');
@@ -35,5 +36,8 @@ router.post('/editCategory/:id',adminAuth,categoryController.editCategory);
 
 
 router.get('/brands',adminAuth,brandController.getBrandPage);
+
+router.get('/addProducts',adminAuth,productController.getProductAddPage);
+router.post('/addProducts', adminAuth, uploads.array("images", 4), productController.addProducts);
 
 module.exports=router;
