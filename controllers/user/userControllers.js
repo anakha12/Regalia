@@ -1,5 +1,7 @@
 const { send, redirect, json, render } = require('express/lib/response');
 const User=require('../../models/userSchema');
+const Category=require('../../models/categorySchema');
+const Product=require('../../models/productSchema')
 const env= require('dotenv').config();
 const nodemailer= require('nodemailer');
 const bcrypt= require('bcrypt')
@@ -14,17 +16,79 @@ const pageNotFound= async(req,res)=>{
     }
 }
 
+
 const loadHome = async (req, res) => {
     try {
         const user = req.session.user;
+        const categories=await Category.find(({isListed:true}));
+        let productData= await Product.find(
+            {isBlocked:false,
+                category:{$in:categories.map(category=>category._id)},quantity:{$gt:0}
+            }
+        )
+
+        productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn));
+        productData=productData.slice(0,4);
+
+
+
         const userData = user ? await User.findOne({ _id: user._id }) : null;
-        res.render('home', { user: userData });
+        res.render('home', { user: userData ,products:productData});
     } catch (error) {
         console.log('Home page not found', error);
         res.status(500).send('Server error');
     }
 };
 
+const loadShop = async (req, res) => {
+    try {
+        const user = req.session.user;
+        const categories = await Category.find({ isListed: true });
+
+        // Fetch products that belong to the listed categories and have available quantity
+        let productData = await Product.find({
+            isBlocked: false,
+            category: { $in: categories.map(category => category._id) },
+            quantity: { $gt: 0 }
+        });
+
+        // Sort products by creation date (newest first)
+        productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+
+        // Optionally, you can slice or paginate the products
+        // productData = productData.slice(0, 4); // Uncomment if needed
+
+        // Fetch user data if the user is logged in
+        const userData = user ? await User.findOne({ _id: user._id }) : null;
+
+        // Render the shop page with user, categories, and products data
+        res.render('shop', { user: userData, categories, products: productData });
+    } catch (error) {
+        console.log('Shop page not found', error);
+        res.status(500).send('Server error');
+    }
+};
+
+const loadShopDetails = async (req, res) => {
+    try {
+        const productId = req.params.productId;  // Get the product ID from the URL
+        const product = await Product.findOne({ _id: productId, isBlocked: false });
+
+        // Handle case if the product is not found
+        if (!product) {
+            return res.status(404).send('Product not found');
+        }
+
+        const categories = await Category.find({ isListed: true });
+        const user = req.session.user ? await User.findOne({ _id: req.session.user._id }) : null;
+
+        // Render the shop-details page with product details, user, and categories
+        res.render('shop-details', { user, categories, product });
+    } catch (error) {
+        console.error('Error loading product details', error);
+        res.status(500).send('Server error');
+    }
+};
 
 
 const loadSignup= async(req,res)=>{
@@ -158,10 +222,10 @@ const verifyOtp = async (req, res) => {
 
             await saveUserData.save();
 
-            // Save user ID to session
-            req.session.user = saveUserData._id;
+            // Save user ID to sessio
+            
            
-            res.json({ success: true, message: "OTP verified successfully", redirectUrl: '/' });
+            res.json({ success: true, message: "OTP verified successfully", redirectUrl: '/login' });
         } else {
             res.status(400).json({ success: false, message: "Invalid OTP, please try again" });
         }
@@ -257,5 +321,7 @@ module.exports={
     verifyOtp,
     resendOtp,
     login,
-    logout
+    logout,
+    loadShop,
+    loadShopDetails,
 }

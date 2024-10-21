@@ -178,32 +178,47 @@
     }
 
     function viewImage(event, index) {
-        let input = event.target;
-        let reader = new FileReader();
-        reader.onload = function () {
-            let dataURL = reader.result;
-            let image = document.getElementById("imgView" + index);
-            image.src = dataURL;
-            let cropper = new Cropper(image, {
-                aspectRatio: 1,
-                viewMode: 1,
-                guides: true,
-                background: false,
-                autoCropArea: 1,
-                zoomable: true,
-            });
-            let croppedcontainer = document.querySelector("#croppedImg" + index).parentNode;
-            croppedcontainer.style.display = 'block';
+    let input = event.target;
+    let reader = new FileReader();
+    reader.onload = function () {
+        let dataURL = reader.result;
+        let image = document.getElementById("imgView" + index);
+        image.src = dataURL;
 
-            let saveButton = document.querySelector("#saveButton" + index);
-            saveButton.addEventListener('click', function () {
-                let canvas = cropper.getCroppedCanvas();
-                let croppedImage = document.getElementById("croppedImg" + index);
-                croppedImage.src = canvas.toDataURL();
-            });
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
+        // Initialize cropper
+        let cropper = new Cropper(image, {
+            aspectRatio: 1,
+            viewMode: 1,
+            guides: true,
+            background: false,
+            autoCropArea: 1,
+            zoomable: true,
+        });
+
+        let croppedcontainer = document.querySelector("#croppedImg" + index).parentNode;
+        croppedcontainer.style.display = 'block';
+
+        let saveButton = document.querySelector("#saveButton" + index);
+        saveButton.addEventListener('click', function () {
+            let canvas = cropper.getCroppedCanvas();
+            let croppedImage = document.getElementById("croppedImg" + index);
+            croppedImage.src = canvas.toDataURL();
+
+            // Convert the cropped canvas to Blob and replace the original file input
+            canvas.toBlob(function (blob) {
+                let fileInput = document.getElementById("input" + index);
+                let file = new File([blob], "croppedImage.jpg", { type: "image/jpeg" });
+
+                // Create a new DataTransfer object and add the cropped file
+                let dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+            }, 'image/jpeg');
+        });
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
 
     function validateForm() {
         let isValid = true;

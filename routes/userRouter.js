@@ -17,6 +17,9 @@ router.post('/resend-otp',userController.resendOtp);
 
 router.get('/login',userController.loadLogin);
 router.post('/login',userController.login);
+router.get('/shop', userController.loadShop);
+router.get('/shop-details/:productId', userController.loadShopDetails);
+
 
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 

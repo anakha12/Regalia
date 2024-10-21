@@ -185,13 +185,14 @@ const unblockProduct=async (req,res)=>{
 const getEditProduct= async(req,res)=>{
     try {
         let id=req.query.id;
-        const product=await Product.findOne({_id:id});
+        const product=await Product.findOne({_id:id}).populate('category'); // Populating category field
+
         const category= await Category.find({});
         // const brand= await Brand.find({})
 
         res.render("edit-product",{
             product:product,
-            cat:category,
+            categories:category,
             // brand:brand,
         })
     } catch (error) {
@@ -224,7 +225,7 @@ const editProduct= async(req,res)=>{
             productName:data.productName,
             description:data.description,
             brand:data.brand,
-            category:product.category,
+            category:data.category,
             regularPrice:data.regularPrice,
             salePrice:data.salePrice,
             quantity:data.quantity,
