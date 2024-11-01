@@ -203,8 +203,7 @@
                            <div>
 
 
-                               <button class="btn btn-md rounded font-sm hover-up" id="updatebtn"
-                                   type="submit"  onclick="validateAndSubmit()">Update</button>
+                            <button class="btn btn-md rounded font-sm hover-up" type="submit">Publish</button>
                            </div>
                        </form>
                    </div>
@@ -214,92 +213,78 @@
        </div>
    </section>
    <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
-
+ 
 
    <script>
 
-
-    function validateAndSubmit() {
-    if (validateForm()) {
-       document.forms[0].submit();
+function validateAndSubmit(event) {
+        event.preventDefault();
+        if (validateForm()) {
+            document.forms[0].submit();
         }
     }
     
-    
-    
-    
     function validateForm() {
-       let imageDatas = false
-               console.log("validate form");
-               clearErrorMessages();
-               const name = document.getElementsByName('productName')[0].value;
-               const description = document.getElementsByName('descriptionData')[0].value;
-               const brand = document.getElementsByName('brand')[0].value;
-               const price = document.getElementsByName('regularPrice')[0].value;
-               const saleprice = document.getElementsByName('salePrice')[0].value;
-               const color = document.getElementsByName('color')[0].value;
-               const category = document.getElementsByName('category')[0].value;
-               const images = document.getElementById('input1')
-               const quantity=document.getElementsByName('quantity')
-    imageDatas = document.getElementById("imageDatas")?.value;
-               let isValid = true;    
-               if (name.trim() === "") {
-       displayErrorMessage('productName-error', 'Please enter a product name.');
-       isValid = false;
+        let isValid = true;   
+        clearErrorMessages();
+
+        const name = document.getElementsByName('productName')[0].value;
+        const description = document.getElementsByName('descriptionData')[0].value;
+        const price = parseFloat(document.getElementsByName('regularPrice')[0].value);
+        const saleprice = parseFloat(document.getElementsByName('salePrice')[0].value);
+        const quantity = parseInt(document.getElementsByName('quantity')[0].value, 10);
+        const color = document.getElementsByName('color')[0].value;
+        const category = document.getElementsByName('category')[0].value;
+        const images = document.getElementById('input1').files.length;
+                console.log(images);
+        if (name.trim() === "") {
+            displayErrorMessage('productName-error', 'Please enter a product name.');
+            isValid = false;
+        }
+        
+        if (description.trim() === "") {
+            displayErrorMessage('description-error', 'Please enter a product description.');
+            isValid = false;
+        }
+
+        if (isNaN(quantity) || quantity <= 0) {
+            displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
+            isValid = false;
+        }
+
+        if (isNaN(price) || price <= 0) {
+            displayErrorMessage('regularPrice-error', 'Please enter a valid positive regular price.');
+            isValid = false;
+        }
+
+        if (isNaN(saleprice) || saleprice <= 0 || saleprice >= price) {
+            displayErrorMessage('salePrice-error', 'Sale price must be less than the regular price and non-negative.');
+            isValid = false;
+        }
+
+        if (color.trim() === "") {
+            displayErrorMessage('color-error', 'Please enter a color.');
+            isValid = false;
+        }
+
+     
+
+        return isValid;    
     }
-              
-               if (description=== '') {
-                   displayErrorMessage('description-error', 'Please enter a product description.');
-                   isValid = false;
-               } 
     
-    
-               if ( parseInt(quantity) < 0) {
-                   displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
-                   isValid = false;
-               }
-    
-    
-    
-    
-               if (!/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) < 0) {
-                   displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
-                   isValid = false;
-               }
-              if (!/^\d+(\.\d{1,2})?$/.test(saleprice) || parseFloat(saleprice) < 0) {
-                   displayErrorMessage('salePrice-error', 'Please enter a valid non-negative price.');
-                   isValid = false;
-               }
-              
-               if (color.trim() === "") {
-                   displayErrorMessage('color-error', 'Please enter a color.');
-                   isValid = false;
-               }
-               if (!imageDatas && images.files.length === 0) {
-                   displayErrorMessage("images-error",'Please select an image.');
-                   isValid = false;
-               }
-               return isValid;
-           }
-          
-           function displayErrorMessage(elementId, message) {
-               var errorElement = document.getElementById(elementId);
-               errorElement.innerText = message;
-               errorElement.style.display = "block";
-           }
-    
-    
-           function clearErrorMessages() {
-               const errorElements = document.getElementsByClassName('error-message');
-               Array.from(errorElements).forEach(element => {
-                   element.innerText = '';
-               });
-               const errorMessage = document.getElementById('errorMessage');
-    
-    
-           }
-    
-    
+    function displayErrorMessage(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        errorElement.innerText = message;
+        errorElement.style.display = "block";
+    }
+
+    function clearErrorMessages() {
+        const errorElements = document.getElementsByClassName('error-message');
+        Array.from(errorElements).forEach(element => {
+            element.innerText = '';
+            element.style.display = "none";
+        });
+    } 
     
     
     function viewImage1(event) {
@@ -325,6 +310,7 @@
     
     
            function viewImage(event, index) {
+            
                let input = event.target;
                let reader = new FileReader();
                reader.onload = function () {
@@ -369,6 +355,7 @@
            function handleFileSelect(event) {
                const addedImagesContainer = document.getElementById("addedImagesContainer");
                addedImagesContainer.innerHTML = "";
+               console.log("handleFileSelect");
                const files = event.target.files;
                for (let i = 0; i < files.length; i++) {
                    const file = files[i];
@@ -407,6 +394,7 @@
                         }
                     })
                 })
+                console.log("ajax")
            }
            
        </script>

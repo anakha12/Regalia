@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router(); 
 const userController= require('../controllers/user/usercontrollers');
 const passport = require('passport');
+const {userAuth,adminAuth}=require('../middlewares/auth');
 
 router.get('/pageNotFound',userController.pageNotFound);
 router.get('/',userController.loadHome);

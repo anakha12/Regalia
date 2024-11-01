@@ -23,7 +23,8 @@ const loadHome = async (req, res) => {
         const categories=await Category.find(({isListed:true}));
         let productData= await Product.find(
             {isBlocked:false,
-                category:{$in:categories.map(category=>category._id)},quantity:{$gt:0}
+                category:{$in:categories.map(category=>category._id)},
+                quantity:{$gt:0}
             }
         )
 
@@ -31,7 +32,7 @@ const loadHome = async (req, res) => {
         productData=productData.slice(0,4);
 
 
-
+ 
         const userData = user ? await User.findOne({ _id: user._id }) : null;
         res.render('home', { user: userData ,products:productData});
     } catch (error) {
@@ -281,15 +282,16 @@ const login=async(req,res)=>{
 
         req.session.user = {
             _id: findUser._id,
-            name: findUser.name, // Include the name to be used in the header
+          
             email: findUser.email,
-            // Add any other fields you might need
+            
         };
         
         // console.log("Attempting to log in:", email);
 
         res.redirect('/')
 
+        
     } catch (error) {
         console.error("Login error",error);
         res.render('login',{message:"login failed please try again later"});

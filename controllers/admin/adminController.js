@@ -23,12 +23,12 @@ const login = async (req, res) => {
                 return res.redirect("/admin");
             } else {
                 // Wrong password, handle here (can display a message)
-                return res.redirect('/login');
+                return res.redirect('/admin/login');
             }
         } else {
             // No such admin, handle here (can display a message)
             return res.redirect('/login');
-        }
+        } 
     } catch (error) {
         console.error("Login error:", error);
         return res.redirect("/pageerror");
@@ -62,6 +62,7 @@ const logout = async (req, res) => {
                 console.error("Error destroying session:", err);
                 return res.redirect("/pageerror");
             }
+            res.clearCookie('connect.sid');
             res.redirect('/admin/login');
         });
     } catch (error) {

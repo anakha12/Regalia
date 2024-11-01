@@ -20,6 +20,12 @@ const userAuth=(req,res,next)=>{
 }
 
 const adminAuth=(req,res,next)=>{
+    
+    // Add headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     User.findOne({isAdmin:true})
     .then(data=>{
         if(data){

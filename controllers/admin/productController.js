@@ -52,7 +52,7 @@ const addProducts=async(req,res)=>{
                 salePrice:products.salePrice,
                 createdOn:new Date(),
                 quantity:products.quantity,
-                size:products.size,
+                // size:products.size,
                 color:products.color,
                 productImage:images,
                 status:'Available',
@@ -214,6 +214,9 @@ const editProduct= async(req,res)=>{
             return res.status(400).json({error:"Product with this name already exists. Please try with another name"});
 
         }
+
+
+        
         const images=[];
         if(req.files && req.files.length>0){
             for(let i=0;i<req.files.length;i++){

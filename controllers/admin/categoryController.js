@@ -170,7 +170,7 @@ const editCategory= async(req,res)=>{
 module.exports={
     categoryInfo,
     addCategory,
-    addCategoryOffer,
+    addCategoryOffer, 
     removeCategoryOffer,
     getListCategory,
     getUnlistCategory,
