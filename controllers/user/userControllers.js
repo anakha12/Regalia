@@ -26,13 +26,8 @@ const loadHome = async (req, res) => {
                 category:{$in:categories.map(category=>category._id)},
                 quantity:{$gt:0}
             }
-        )
+        ).sort({ createdOn: -1 }).limit(4);
 
-        productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn));
-        productData=productData.slice(0,4);
-
-
- 
         const userData = user ? await User.findOne({ _id: user._id }) : null;
         res.render('home', { user: userData ,products:productData});
     } catch (error) {
@@ -46,23 +41,20 @@ const loadShop = async (req, res) => {
         const user = req.session.user;
         const categories = await Category.find({ isListed: true });
 
-        // Fetch products that belong to the listed categories and have available quantity
+       
         let productData = await Product.find({
             isBlocked: false,
             category: { $in: categories.map(category => category._id) },
             quantity: { $gt: 0 }
         });
 
-        // Sort products by creation date (newest first)
+      
         productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
 
-        // Optionally, you can slice or paginate the products
-        // productData = productData.slice(0, 4); // Uncomment if needed
-
-        // Fetch user data if the user is logged in
+      
         const userData = user ? await User.findOne({ _id: user._id }) : null;
 
-        // Render the shop page with user, categories, and products data
+       
         res.render('shop', { user: userData, categories, products: productData });
     } catch (error) {
         console.log('Shop page not found', error);
@@ -72,10 +64,10 @@ const loadShop = async (req, res) => {
 
 const loadShopDetails = async (req, res) => {
     try {
-        const productId = req.params.productId;  // Get the product ID from the URL
+        const productId = req.params.productId;  
         const product = await Product.findOne({ _id: productId, isBlocked: false });
 
-        // Handle case if the product is not found
+       
         if (!product) {
             return res.status(404).send('Product not found');
         }
@@ -83,7 +75,7 @@ const loadShopDetails = async (req, res) => {
         const categories = await Category.find({ isListed: true });
         const user = req.session.user ? await User.findOne({ _id: req.session.user._id }) : null;
 
-        // Render the shop-details page with product details, user, and categories
+       
         res.render('shop-details', { user, categories, product });
     } catch (error) {
         console.error('Error loading product details', error);
@@ -97,7 +89,7 @@ const loadSignup= async(req,res)=>{
         return res.render('signup');
     } catch (error) {
         console.log('Home page not found',error);
-        res.status(500).send('Server error')
+        res.status(500).send('Server error');
         
     }
 }
@@ -105,7 +97,7 @@ const loadSignup= async(req,res)=>{
 const loadLogin= async(req,res)=>{
     try {
         if(!req.session.user){
-            const message = ""; // Initialize with an empty string if no message
+            const message = ""; 
             res.render('login',{message});
         }else{
             res.redirect('/');
@@ -164,9 +156,10 @@ const signup=async(req,res)=>{
     
     try {
         const {name,email,phone,password,cPassword}=  req.body;
+      
 
         if(password!==cPassword){
-            return res.render("signup",{message:'Password don not match'})
+            return res.render("signup",{message:'Password do not match'})
         }
 
         const findUser=await User.findOne({email});
@@ -179,17 +172,19 @@ const signup=async(req,res)=>{
         const emailSent=await sendVerificationEmail(email,otp);
 
         if(!emailSent){
-            return res.json('email-error')
+           
+            return res.render('signup', { message: 'Email sending failed' });
         }
         req.session.userOtp=otp;
         req.session.userData={email,password,name,phone};
 
         res.render("verify-otp");   
-        console.log("OTP Sent",req.session.userOtp)
+        console.log("OTP Sent",req.session.userOtp);
 
     } catch (error) {
         console.error('signup error',error);
-        res.redirect('/pageNotFound');  
+        return res.render('signup',{message:'server errror'})
+
     }
 }
 
@@ -208,7 +203,7 @@ const verifyOtp = async (req, res) => {
         const { otp } = req.body;
         console.log("Received OTP:", otp);
 
-        // Ensure OTP and session OTP are both strings before comparison
+       
         if (String(otp) === String(req.session.userOtp)) {
             const user = req.session.userData;
             const passwordHash = await securePassword(user.password);
@@ -223,7 +218,7 @@ const verifyOtp = async (req, res) => {
 
             await saveUserData.save();
 
-            // Save user ID to sessio
+           
             
            
             res.json({ success: true, message: "OTP verified successfully", redirectUrl: '/login' });
@@ -232,19 +227,21 @@ const verifyOtp = async (req, res) => {
         }
     } catch (error) {
         console.error("Error verifying OTP:", error);
-        res.status(500).json({ success: false, message: "An error occurred while verifying OTP" });
+        res.status(500).json({ success: false, message:'Server error during OTP verification' });
     }
 };
 
 const resendOtp= async(req,res)=>{
+    
     try {
         const {email}=req.session.userData;
+
         if(!email){
             return res.status(400).json({success:false,message:'Email not found in session'})
         }
         const otp=generateOtp();
         req.session.userOtp=otp;
-
+        
         const emailSent= await sendVerificationEmail(email,otp);
         if(emailSent){
             console.log('Resend OTP:',otp);
@@ -274,24 +271,17 @@ const login=async(req,res)=>{
             return res.render('login',{message:"User is Blocked by admin"})
         }
 
-        const passwordMatch=  bcrypt.compare(password,findUser.password);
-
+        const passwordMatch = await bcrypt.compare(password,findUser.password);
+        
         if(!passwordMatch){
-            return res.render("login",{message:"Incorrect Password"})
+            return res.render("login",{message:"Incorrect Password"});
         }
 
         req.session.user = {
             _id: findUser._id,
-          
             email: findUser.email,
-            
         };
-        
-        // console.log("Attempting to log in:", email);
-
         res.redirect('/')
-
-        
     } catch (error) {
         console.error("Login error",error);
         res.render('login',{message:"login failed please try again later"});
@@ -326,4 +316,5 @@ module.exports={
     logout,
     loadShop,
     loadShopDetails,
+   
 }

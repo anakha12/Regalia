@@ -292,12 +292,12 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ percentage: percentage ,categoryId:categoryId})
           })
-          .then(response => {
+          .then(response =>response.json().then(data=> {
             if (!response.ok) { 
-              throw new Error('Failed to add offer.');
+              throw new Error(data.message || 'An error occurred');
             }
-            return response.json();
-          })
+            return data;
+          }))
           .then(data => {
             Swal.fire({
               icon: 'success',
@@ -333,12 +333,12 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ categoryId:categoryId})
           })
-          .then(response => {
+          .then(response => response.json().then(data=>{
             if (!response.ok) {
-              throw new Error('Failed to remove offer.');
+              throw new Error(data.message ||'Failed to remove offer.');
             }
-            return response.json();
-          })
+            return data;
+          }))
           .then(data => {
             Swal.fire({
               icon: 'success',

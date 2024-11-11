@@ -2,21 +2,103 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6 mt-60">
-            <form method="post" action="/admin/editCategory/<%=category._id%>">
+            <form method="post" id="editCategoryForm" action="/admin/editCategory/<%=category._id%>" >
                 <div class="d-grid text-end mt-30 col-md-5">
                     <button class="btn btn-primary" type="submit">Update category</button>
                 </div>
                 <div class="mb-4 mt-30">
                     <label for="product_name" class="form-label">Name</label>
                     <input type="text" name="categoryName" value="<%=category.name%>" class="form-control border" />
-                </div>
                 
-                <div class="mb-4">
+                <div id="name-error" class="error-message"></div>
+               </div> 
+               <div class="mb-4">
                     <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control border"><%=category.description%></textarea>
+                    <textarea id="descriptionId" name="description" class="form-control border"><%=category.description%></textarea>
+                    <div id="description-error" class="error-message"></div>
                 </div>
             </form>
         </div>
     </div>
 </div>
-<%- include("../../views/partials/admin/footer") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.getElementById("editCategoryForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+        clearErrorMessages();
+        const categoryId = "<%= category._id %>";
+        const name= document.getElementsByName("categoryName")[0].value.trim()
+        const description = document.getElementById("descriptionId").value.trim();
+        isValid = true;
+        if(name === ""){
+            displayErrorMessgae("name-error","please enter a name")
+            isValid = false
+        }
+        else if(!/^[a-zA-Z\s]+$/.test(name)){
+            displayErrorMessgae("name-error","Category name should contain only alphabetic characters");
+            isValid = false;
+        }
+        if(description === ""){
+            displayErrorMessgae("description-error","please enter a description");
+            isValid = false;
+        }
+        if (!isValid) {
+            return;  // Stop submission if validation fails
+        }    
+    try {
+            const response = await fetch("/admin/editCategory/${categoryId}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    categoryName: name,
+                    description: description,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Success case
+                Swal.fire({
+                    title: "Category Updated",
+                    text: data.success || "The category has been successfully updated!",
+                    icon: "success",
+                }).then(() => {
+                    window.location.href = "/admin/category";  // Redirect to category listing after success
+                });
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: data.error || "An error occurred while updating the category.",
+                    icon: "error",
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                title: "Error",
+                text: "An unexpected error occurred.",
+                icon: "error",
+            });
+            console.error("Error while updating category:", error);
+        }
+    });
+
+    function displayErrorMessgae(elementId,message){
+        var errorElement = document.getElementById(elementId);
+        errorElement.innerText = message;
+        errorElement.style.display ="block";
+    }
+    function clearErrorMessages(){
+        var errorElements = document.getElementsByClassName("error-message");
+        Array.from(errorElements).forEach(element=>{
+        element.innerText="";
+        element.style.display="none";
+
+        });
+    }
+   </script>
+   
+
+<%- include("../../views/partials/admin/footer")%>

@@ -171,7 +171,7 @@
             url:'/verify-otp',
             data:{otp:otpInput},
             success:function(response){
-                console.log("hi");
+                
                 if(response.success){
                     Swal.fire({
                         icon:"success",
@@ -200,38 +200,47 @@
         return false;
     }
 
-    function resendOtp(){
-        clearInterval(timerInterval);
-        timer:60,
-        document.getElementById('otp').disabled=false;
-        document.getElementById("timervalue").classList.remove('expired');
+    function resendOtp() {
+
+        console.log("Resend OTP clicked");
+        clearInterval(timer);
+        timeLeft = 60;
+        countdownElement.textContent = timeLeft;  
         startTimer();
+        document.getElementById('otp').disabled = false;
+        resendElement.style.display = 'none';
 
-        $.ajax({
-            type:'POST',
-            url:"resend-otp",
-            success:function(response){
-                if(response.success){
-                    Swal.fire({
-                        icon:"success",
-                        title:"OTP Resend Successfully",
-                        showConfirmButton:false,
-                        timer:1500,
-
-                    })
-                }else{
-                    Swal.fire({
-                        icon:"error",
-                        title:"Error",
-                        text:"An error occured while resending OTP, Please try again"
-                        
-
-                    })
-                }
+    // Send AJAX request to resend OTP
+    $.ajax({
+        type: 'POST',
+        url: '/resend-otp',
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    icon: "success",
+                    title: "OTP Resent Successfully",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "An error occurred while resending OTP. Please try again."
+                });
             }
-        })
-        return false;
-    }
+        },
+        error: function() {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "An unexpected error occurred. Please try again."
+            });
+        }
+    });
+    return false;
+}
+
 </script>
 
 </body>

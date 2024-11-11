@@ -19,7 +19,7 @@ const customerInfo= async(req,res)=>{
                 {email:{$regex:".*"+search+".*"}},
             ],
         })
-        .limit(limit*1)
+        .limit(limit)
         .skip((page-1)*limit)
         .exec();
 
@@ -32,9 +32,9 @@ const customerInfo= async(req,res)=>{
         }).countDocuments();
 
         res.render('customers', {
-            data: userData,        // Pass the user data as 'data'
-            totalPages: Math.ceil(count / limit), // Total number of pages for pagination
-            currentPage: page      // The current page number
+            data: userData,        
+            totalPages: Math.ceil(count / limit), 
+            currentPage: page     
         });
 
     } catch (error) {

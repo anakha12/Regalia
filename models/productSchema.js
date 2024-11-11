@@ -1,5 +1,5 @@
 const mongoose=require('mongoose');
-const { name } = require('../app');
+
 const {Schema}=mongoose;
 
 const productSchema= new Schema({

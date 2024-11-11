@@ -1,14 +1,14 @@
 const express= require('express');
 const app= express();
-const path= require('path')
+const path= require('path');
 const env=require('dotenv').config();
 const session=require('express-session');
 const passport= require('./config/passport');
-const db=require('./config/db');
+const db= require('./config/db');
 const userRouter= require('./routes/userRouter');
 const req = require('express/lib/request');
 const adminRouter=require('./routes/adminRouter');
-db()
+db();
 
 
 app.use(express.json());

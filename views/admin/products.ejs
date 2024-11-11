@@ -123,7 +123,7 @@
                     location.reload();
                     Swal.fire('Offer Added', 'The offer has been added successfully', 'success');
                 } else {
-                    Swal.fire('Failed', 'Adding offer failed', 'error');
+                    Swal.fire('Failed', response.message || 'Adding offer failed', 'error');
                 }
             },
             error: () => {

@@ -1,5 +1,5 @@
 const mongoose= require('mongoose');
-const { name } = require('../app');
+
 const {Schema}=mongoose;
 
 const categorySchema= new mongoose.Schema({
@@ -19,12 +19,9 @@ const categorySchema= new mongoose.Schema({
     categoryOffer:{
         type:Number,
         default:0
-    },
-    creadAt:{
-        type:Date,
-        default:Date.now
     }
-})
+    
+},{timestamps:true})
 
 const Category= mongoose.model('Category',categorySchema);
 module.exports=Category;
