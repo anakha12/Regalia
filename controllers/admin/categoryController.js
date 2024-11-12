@@ -217,7 +217,8 @@ const getEditCategory= async (req,res)=>{
 
 const editCategory= async(req,res)=>{
     try {
-        let id=req.params.id;
+        
+        
        const {categoryName,description}=req.body;
        const existingCategory= await Category.findOne({name:categoryName});
        if(existingCategory){

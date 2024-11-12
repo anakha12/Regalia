@@ -7,7 +7,9 @@ const passport= require('./config/passport');
 const db= require('./config/db');
 const userRouter= require('./routes/userRouter');
 const req = require('express/lib/request');
+const flash = require('connect-flash');
 const adminRouter=require('./routes/adminRouter');
+
 db();
 
 
@@ -25,7 +27,7 @@ app.use(session({
     message:""
 }));
 
-
+app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session())
 
