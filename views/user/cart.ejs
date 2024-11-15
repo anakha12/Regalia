@@ -122,11 +122,10 @@
                                         <!-- Quantity Column -->
                                         <td class="quantity__item">
                                             <div class="quantity">
+                                                <button class="decrease-qty" data-action="decrease" data-product-id="<%= item.productId._id %>">-</button>
+                                                <input type="text" class="quantity-input" value="<%= item.quantity %>" readonly>
+                                                <button class="increase-qty" data-action="increase" data-product-id="<%= item.productId._id %>">+</button>
                                                 
-                                                    <button class="decrease-qty" data-action="decrease" data-product-id="<%= item.productId._id %>">-</button>
-                                                    <input type="text" class="quantity-input" value="<%= item.quantity %>" readonly>
-                                                    <button class="increase-qty" data-action="increase" data-product-id="<%= item.productId._id %>">+</button>
-                                               
                                             </div>
                                         </td>
                                         
@@ -145,14 +144,10 @@
                     </table>
                 </div>
                 <div class="row">
-                    <div class="col-lg-6 col-md-6 col-sm-6">
-                        <div class="continue__btn">
-                            <a href="/shop">Continue Shopping</a>
-                        </div>
-                    </div>
+                 
                     <div class="col-lg-6 col-md-6 col-sm-6">
                         <div class="continue__btn update__btn">
-                            <a href="#"><i class="fa fa-spinner"></i> Update cart</a>
+                            <a href="/shop">Continue Shopping</a>
                         </div>
                     </div>
                 </div>
@@ -191,8 +186,10 @@
         // Modify quantity based on button action
         if (action === 'decrease' && currentQuantity > 1) {
             currentQuantity--;
-        } else if (action === 'increase') {
+        } else if (action === 'increase' && currentQuantity < 5) {
             currentQuantity++;
+        } else {
+            return; // Exit if the action would exceed the range
         }
 
         // Send the updated quantity to the server

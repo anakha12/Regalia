@@ -105,15 +105,23 @@
                             </div>
                             <div class="product__details__cart__option">
                                 
-                                <form id="add-to-cart-form" action="" class="add-to-cart-form" data-product-id="<%= product._id %>" method="">
-                                    <input type="hidden" name="productId" value="<%= product._id %>">
-                                    <div class="quantity">
-                                        <div class="pro-qty">
-                                            <input type="text" name="quantity" value="1">
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="primary-btn">Add to Cart</button>
-                                </form>
+                                <% if (product.quantity > 0) { %>
+                                    <!-- Show the Add to Cart button if product quantity is more than 0 -->
+                                    <form id="add-to-cart-form" action="" class="add-to-cart-form" data-product-id="<%= product._id %>" method="">
+                                      <input type="hidden" name="productId" value="<%= product._id %>">
+                                      <div class="quantity">
+                                        
+                                          <input type="number" name="quantity" value="1" min="1" max="5" step="1">
+                                        
+                                      </div>
+                                      
+                                      <button type="submit" class="primary-btn">Add to Cart</button>
+                                    </form>
+                                  <% } else { %>
+                                    <!-- Show the Out of Stock button if product quantity is 0 -->
+                                    <button class="primary-btn" disabled>Out of Stock</button>
+                                  <% } %>
+                                  
                                 
                             </div>
                             <div class="product__details__btns__option">

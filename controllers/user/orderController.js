@@ -10,7 +10,6 @@ const Category=require('../../models/categorySchema');
 const env= require('dotenv').config();
 
 
-
 const addToOrder = async (req, res) => {
   try {
     const userId = req.session.user;
@@ -21,11 +20,10 @@ const addToOrder = async (req, res) => {
       return res.status(400).json({ message: 'Your cart is empty.' });
     }
 
-    
-    const addressData = await Address.findOne({
-      userId,
-      'address._id': selectedAddressId,
-    }, { 'address.$': 1 });
+    const addressData = await Address.findOne(
+      { userId, 'address._id': selectedAddressId },
+      { 'address.$': 1 }
+    );
 
     if (!addressData || addressData.address.length === 0) {
       return res.status(400).json({ message: 'Address not found.' });
@@ -33,26 +31,37 @@ const addToOrder = async (req, res) => {
     const address = addressData.address[0];
 
     let totalPrice = 0;
-    const orderedItems = cart.items.map((item) => {
+    const orderedItems = [];
+
+    for (const item of cart.items) {
       const { productId, quantity } = item;
       const price = productId.salePrice;
       const name = productId.productName;
-      const images = productId.productImage; 
+      const images = productId.productImage;
       const discountPrice = productId.regularPrice - productId.salePrice;
       const itemTotalPrice = price * quantity;
 
       totalPrice += itemTotalPrice;
 
-      return {
+      // Update ordered items array
+      orderedItems.push({
         product: productId._id,
         quantity,
         price,
         totalPrice: itemTotalPrice,
         discountPrice,
-        name,       
-        images,      
-      };
-    });
+        name,
+        images,
+      });
+
+      // Check stock availability
+      if (productId.quantity < quantity) {
+        return res.status(400).json({ message: `Insufficient stock for product: ${name}.` });
+      }
+
+      productId.quantity -= quantity;
+      await productId.save();
+    }
 
     const discount = couponApplied ? 10 : 0;
     const finalAmount = totalPrice - (totalPrice * discount) / 100;
@@ -68,8 +77,10 @@ const addToOrder = async (req, res) => {
       couponApplied,
       userId,
     });
-    
+
     await newOrder.save();
+
+    // Clear the user's cart after placing the order
     await Cart.findOneAndUpdate({ userId }, { items: [] });
 
     res.status(201).json({
@@ -82,6 +93,7 @@ const addToOrder = async (req, res) => {
     res.status(500).json({ message: 'Failed to place order. Please try again later.' });
   }
 };
+
 
 
 const getOrders = async (req, res) => {
@@ -120,7 +132,7 @@ const cancelOrder = async (req, res) => {
       return res.status(404).json({ success: false, message: "Item not found in order." });
     }
 
-    if (order.status !== 'Pending' && order.status !== 'Processing') {
+    if (order.status !== 'Pending' && order.status !== 'Processing'&&order.status !== 'Shipped') {
       return res.status(400).json({ success: false, message: "Order cannot be canceled at this stage." });
     }
 

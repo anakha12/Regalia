@@ -11,7 +11,7 @@ const orderSchema= new mongoose.Schema({
         },
         userId: {  // Add this field to associate products with a user
             type: Schema.Types.ObjectId,
-            ref: "User",  // Reference to the User model
+            ref: "User2",  // Reference to the User model
             required: true
           },
           Ordereditems: [{
@@ -73,7 +73,7 @@ const orderSchema= new mongoose.Schema({
         status: {
             type: String,
             required: true,
-            enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Request', 'Returned']
+            enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
         },
         
         createdOn:{

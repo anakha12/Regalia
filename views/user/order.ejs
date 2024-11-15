@@ -8,9 +8,8 @@
         <div class="order-card">
           <div class="order-header">
             <!-- Display full Order ID with reduced font size -->
-            <h4>ORDER ID: <span class="order-id"><%= order.orderId %></span></h2>
+            <h4>ORDER ID: <span class="order-id"><%= order.orderId %></span></h4>
             <p>Order Date: <%= new Date(order.invoiceDate).toLocaleDateString() %></p>
-            <p>Status: <%= order.status %></p>
             <p>Total Price: $<%= order.totalPrice.toFixed(2) %></p>
             <p>Discount Applied: <%= order.discount %>%</p>
             <p>Final Amount: $<%= order.finalAmount.toFixed(2) %></p>
@@ -33,8 +32,25 @@
                 <p>Price per Unit: $<%= item.price.toFixed(2) %></p>
                 <p>Total Price: $<%= item.totalPrice.toFixed(2) %></p>
                 <p>Discount Price: $<%= item.discountPrice.toFixed(2) %></p>
+                
+                <!-- Show individual product status -->
+                <p class="product-status">
+                  Status: 
+                  <% if (order.status === 'Pending') { %>
+                    <span class="status-pending">Pending</span>
+                  <% } else if (order.status === 'Processing') { %>
+                    <span class="status-processing">Processing</span>
+                  <% } else if (order.status === 'Shipped') { %>
+                    <span class="status-shipped">Shipped</span>
+                  <% } else if (order.status === 'Delivered') { %>
+                    <span class="status-delivered">Delivered</span>
+                  <% } else { %>
+                    <span class="status-default">Unknown</span>
+                  <% } %>
+                </p>
+
                 <p>
-                  <% if (order.status === 'Pending' || order.status === 'Processing') { %>
+                  <% if (order.status === 'Pending' || order.status === 'Processing'||order.status === 'Shipped') { %>
                     <button onclick="cancelOrder('<%= order._id %>', '<%= item.product._id %>')">Cancel</button>
                   <% } else { %>
                     <span>Not Cancelable</span>
@@ -142,5 +158,36 @@
 
   button:hover {
     background-color: #d32f2f;
+  }
+
+  .product-status span {
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 5px;
+  }
+
+  .status-pending {
+    background-color: #f4a261;
+    color: #fff;
+  }
+
+  .status-processing {
+    background-color: #2a9d8f;
+    color: #fff;
+  }
+
+  .status-shipped {
+    background-color: #264653;
+    color: #fff;
+  }
+
+  .status-delivered {
+    background-color: #e9c46a;
+    color: #fff;
+  }
+
+  .status-default {
+    background-color: #808080;
+    color: #fff;
   }
 </style>

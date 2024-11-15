@@ -1,0 +1,132 @@
+<%- include("../../views/partials/admin/header") %>
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+</head>
+
+<div class="content-header">
+    <div>
+        <h2 class="content-title card-title">Orders</h2>
+    </div>
+</div>
+
+<div class="right mt-5">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col"><b>Order ID</b></th>
+                <th scope="col"><b>User Email</b></th>
+                <th scope="col"><b>Total Amount</b></th>
+                <th scope="col"><b>Product Name</b></th>
+                <th scope="col"><b>Quantity</b></th>
+                <th scope="col"><b>Order Status</b></th>
+                <th scope="col"><b>Actions</b></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% orders.forEach(order => { %>
+                <% order.Ordereditems.forEach(item => { %>
+                <tr>
+                    <td><%= order._id %></td>
+                    <td><%= order.userId.email %></td>
+                    <td><%= item.totalPrice%></td>
+                      
+                    <td><%= item.product.productName %></td>
+                    <td><%= item.quantity %></td>
+                    <td id="status-<%= order._id %>"><%= order.status %></td>
+                    <td>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus('<%= order._id %>')">Update Status</button>
+                        <button class="btn btn-danger btn-sm" onclick="cancelOrder('<%= order._id %>')">Cancel Order</button>
+                    </td>
+                </tr>
+                <% }) %>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+   function updateStatus(orderId) {
+    const statuses = ["Pending", "Placed", "Shipped", "Out for Delivery", "Delivered"];
+    const currentStatus = document.getElementById(`status-${orderId}`).innerText;
+    const currentIndex = statuses.indexOf(currentStatus);
+
+    // Check if the status is "Cancelled"
+    if (currentStatus === 'Cancelled') {
+        Swal.fire('Info', 'The order has been cancelled and cannot be updated further.', 'info');
+        return; // Exit the function as no update is needed
+    }
+
+    // If the status is already "Delivered", disable further updates
+    if (currentIndex === statuses.length - 1) {
+        Swal.fire('Info', 'The order is already delivered and cannot be updated further.', 'info');
+        return;
+    }
+
+    // Get the next status
+    const nextStatus = statuses[currentIndex + 1];
+
+    Swal.fire({
+        title: `Update status to "${nextStatus}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, update it!',
+        cancelButtonText: 'No, keep current status'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Send an AJAX request to update the status on the server
+            $.ajax({
+                url: '/admin/updateOrderStatus',
+                method: 'POST',
+                data: { orderId: orderId, newStatus: nextStatus },
+                success: (response) => {
+                    if (response.success) {
+                        document.getElementById(`status-${orderId}`).innerText = nextStatus;
+                        Swal.fire('Success', `Order status updated to "${nextStatus}"`, 'success');
+                    } else {
+                        Swal.fire('Error', 'Failed to update status', 'error');
+                    }
+                },
+                error: () => {
+                    Swal.fire('Error', 'Failed to update status', 'error');
+                }
+            });
+        }
+    });
+}
+
+
+    // Function to cancel an order
+    function cancelOrder(orderId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will cancel the order.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No, keep it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/admin/cancelOrder',
+                    method: 'POST',
+                    data: { orderId: orderId },
+                    success: (response) => {
+                        if (response.success) {
+                            document.getElementById(`status-${orderId}`).innerText = 'Cancelled';
+                            Swal.fire('Cancelled', 'Order has been cancelled', 'success');
+                        } else {
+                            Swal.fire('Error', 'Failed to cancel the order', 'error');
+                        }
+                    },
+                    error: () => {
+                        Swal.fire('Error', 'Failed to cancel the order', 'error');
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+<%- include("../../views/partials/admin/footer") %>

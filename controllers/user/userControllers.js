@@ -45,7 +45,7 @@ const loadShop = async (req, res) => {
         let productData = await Product.find({
             isBlocked: false,
             category: { $in: categories.map(category => category._id) },
-            quantity: { $gt: 0 }
+           
         });
 
       
@@ -55,7 +55,7 @@ const loadShop = async (req, res) => {
         const userData = user ? await User.findOne({ _id: user._id }) : null;
 
        
-        res.render('shop', { user: userData, categories, products: productData });
+        res.render('shop', { user: userData, categories, products: productData,selectedCategory:"" });
     } catch (error) {
         console.log('Shop page not found', error);
         res.status(500).send('Server error');
@@ -82,6 +82,49 @@ const loadShopDetails = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
+
+
+// const shopFilter = async (req, res) => {
+//     try {
+//         const { search, categories, priceRange } = req.query;
+
+//         let query = {};
+
+        
+//         if (search) {
+//             query.productName = { $regex: search, $options: 'i' }; 
+//         }
+
+       
+//         if (categories) {
+//             query.category = { $in: Array.isArray(categories) ? categories : [categories] };
+//         }
+
+        
+//         if (priceRange) {
+//             const [min, max] = priceRange.split('-').map(Number);
+//             query.salePrice = max
+//                 ? { $gte: min, $lte: max } 
+//                 : { $gte: min };        
+//         }
+
+    
+//         const products = await Product.find(query);
+
+       
+//         const allCategories = await Category.find(); 
+
+//         res.render('shop', { products, categories: allCategories, selectedCategories: categories });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// };
+
+
+
+
+
 
 
 const loadSignup= async(req,res)=>{
@@ -316,5 +359,5 @@ module.exports={
     logout,
     loadShop,
     loadShopDetails,
-   
+    // shopFilter,
 }

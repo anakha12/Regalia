@@ -90,6 +90,16 @@
                             </div>
                         <% }); %>
                     </form>
+                    <% if (userAddresses.length < 3) { %>
+                        <div style="margin-top: 20px;">
+                            <a href="/addAddressCart">
+                                <button class="btn btn-primary w-70">
+                                    Add Another Address
+                                </button>
+                            </a>
+                        </div>
+                    <% } %>
+
                 <% } else { %>
                     <p>No saved address. Please add an address below.</p>
                     <div>
@@ -100,6 +110,7 @@
                         </a>
                       </div>
                 <% } %>
+
             </div>
 
             <!-- Right Column: Cart Summary and Payment -->
