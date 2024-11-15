@@ -1,0 +1,146 @@
+<%- include("../../views/partials/user/header") %>
+
+<div class="container">
+    <h1>Your Orders</h1>
+
+    <% if (orders && orders.length > 0) { %>
+      <% orders.forEach(order => { %>
+        <div class="order-card">
+          <div class="order-header">
+            <!-- Display full Order ID with reduced font size -->
+            <h4>ORDER ID: <span class="order-id"><%= order.orderId %></span></h2>
+            <p>Order Date: <%= new Date(order.invoiceDate).toLocaleDateString() %></p>
+            <p>Status: <%= order.status %></p>
+            <p>Total Price: $<%= order.totalPrice.toFixed(2) %></p>
+            <p>Discount Applied: <%= order.discount %>%</p>
+            <p>Final Amount: $<%= order.finalAmount.toFixed(2) %></p>
+          </div>
+
+          <div class="ordered-items">
+            <% order.Ordereditems.forEach(item => { %>
+              <div class="item-card">
+                <!-- Display product image and name -->
+                <div class="product-info">
+                  <% if (item.product && item.product.productImage && item.product.productImage.length > 0) { %>
+                    <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt="<%= item.product.productName %>" class="product-image">
+                  <% } else { %>
+                    <img src="/images/default-product.jpg" alt="Default Image" class="product-image">
+                  <% } %>
+                  <h3><%= item.product.productName || 'Product Name Unavailable' %></h3>
+                </div>
+                
+                <p>Quantity: <%= item.quantity %></p>
+                <p>Price per Unit: $<%= item.price.toFixed(2) %></p>
+                <p>Total Price: $<%= item.totalPrice.toFixed(2) %></p>
+                <p>Discount Price: $<%= item.discountPrice.toFixed(2) %></p>
+                <p>
+                  <% if (order.status === 'Pending' || order.status === 'Processing') { %>
+                    <button onclick="cancelOrder('<%= order._id %>', '<%= item.product._id %>')">Cancel</button>
+                  <% } else { %>
+                    <span>Not Cancelable</span>
+                  <% } %>
+                </p>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+        <hr>
+      <% }) %>
+    <% } else { %>
+      <p>You have no orders.</p>
+    <% } %>
+</div>
+
+<%- include("../../views/partials/user/footer") %>
+
+<script>
+    async function cancelOrder(orderId, productId) {
+      if (confirm("Are you sure you want to cancel this item?")) {
+        try {
+          const response = await fetch(`/orders/cancel`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ orderId, productId })
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert("Item canceled successfully.");
+            location.reload();
+          } else {
+            alert(result.message || "Failed to cancel item.");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("An error occurred while canceling the item.");
+        }
+      }
+    }
+</script>
+
+<style>
+  .order-card {
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+  }
+
+  .order-header {
+    margin-bottom: 10px;
+  }
+
+  .order-id {
+    font-size: 0.85em; /* Reduce the font size of the order ID */
+    color: #555;
+  }
+
+  .ordered-items {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .item-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 8px;
+    background-color: #fff;
+    flex: 1 1 calc(50% - 20px);
+    max-width: 300px;
+  }
+
+  .product-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .product-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .item-card h3 {
+    margin: 0;
+    font-size: 1.1em;
+  }
+
+  button {
+    padding: 5px 10px;
+    color: #fff;
+    background-color: #f44336;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #d32f2f;
+  }
+</style>

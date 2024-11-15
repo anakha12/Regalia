@@ -2421,6 +2421,13 @@ ol {
 	font-weight: 700;
 	width: 140px;
 }
+.shopping__cart__table table tbody tr td.cart__price1 {
+	color: #111111;
+	font-size: 18px;
+	font-weight: 700;
+	width: 140px;
+}
+
 
 .shopping__cart__table table tbody tr td.cart__close i {
 	font-size: 18px;

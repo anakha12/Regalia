@@ -1,27 +1,204 @@
-const User = require('../../models/userSchema');
+
 const Address = require('../../models/addressSchema');
+const Product = require('../../models/productSchema');
+const Cart = require('../../models/cartSchema');
 const session = require('express-session');
-const env = require('dotenv').config();
+
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
-const { redirect } = require('express/lib/response');
 
-const showCart= async(req,res)=>{
-    try {
-        res.render('shopping-cart', { user: req.session.user || null });
-    } catch (error) {
-        res.render('/pageNotFound')
-    }
-}
+const User=require('../../models/userSchema');
+const Category=require('../../models/categorySchema');
 
-const showPayment=async(req,res)=>{
+const env= require('dotenv').config();
+
+
+const addToCart = async (req, res) => {
     try {
-        res.render('checkout', { user: req.session.user || null });
+        const userId = req.session.user;
+        if (!userId) {
+            return res.redirect('/login'); 
+        }
+       
+        const { productId, quantity } = req.body;
+       
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).send('Product not found');
+        }
+
+        if (!product.salePrice || isNaN(quantity) || quantity <= 0) {
+            console.error('Invalid price or quantity');
+            return res.status(400).send('Invalid price or quantity');
+        }
+
+        let cart = await Cart.findOne({ userId });
+        if (!cart) {
+            cart = new Cart({
+                userId,
+                items: []
+            });
+        }
+
+        const existingItem = cart.items.find(item => item.productId.toString() === productId);
+      
+        if (existingItem) {
+            existingItem.quantity += parseInt(quantity, 10);
+            existingItem.totalPrice = existingItem.quantity * product.salePrice;
+        } else {
+            cart.items.push({
+                productId,
+                quantity: parseInt(quantity, 10),
+                price: product.salePrice,
+                totalPrice: parseInt(quantity, 10) * product.salePrice,
+                status: 'placed',
+                CancellationReason: 'none'
+            });
+        }
+
+        await cart.save();
+        res.status(200).send('product added successfully ');
     } catch (error) {
-        res.render('/pageNotFound')
+        console.error('Error adding to cart:', error);
+        res.status(500).send('Internal server error');
     }
-}
+};
+
+const getCart = async (req, res) => {
+    try {
+        const userId = req.session.user;
+        if (!userId) {
+            return res.redirect('/login');
+        }
+
+        const user = await User.findById(userId); // Assuming you have a User model
+
+        const cart = await Cart.findOne({ userId }).populate({
+            path: 'items.productId',
+            select: 'productName salePrice productImage',
+        });
+       
+
+        const items = cart && cart.items.length > 0 ? cart.items : [];
+        const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
+        const total = subtotal; 
+
+        res.render('cart', {
+            user,
+            
+            items,
+            subtotal,
+            total,
+        });
+    } catch (error) {
+        console.error('Error fetching cart:', error);
+        res.status(500).send('Failed to load cart');
+    }
+};
+
+const removeFromCart = async (req, res) => {
+    try {
+        const userId = req.session.user;
+        const productId = req.params.productId; 
+
+        if (!userId) {
+            return res.redirect('/login');
+        }
+
+       
+        const cart = await Cart.findOne({ userId });
+
+       
+        if (!cart) {
+            return res.status(404).send('Cart not found');
+        }
+
+      
+        cart.items = cart.items.filter(item => item.productId.toString() !== productId); // Remove by productId
+
+        
+        await cart.save();
+
+        
+        res.redirect('/cart');
+    } catch (error) {
+        console.error('Error removing product from cart:', error);
+        res.status(500).send('Failed to remove product');
+    }
+};
+const changeQuantity = async (req, res) => {
+    const { productId } = req.params;
+    const { quantity } = req.body;  
+  
+    const cart = await Cart.findOne({ userId: req.session.user });
+    
+    if (!cart) {
+        return res.status(404).json({ message: 'Cart not found' });
+    }
+
+   
+    const cartItem = cart.items.find(item => item.productId.toString() === productId);
+    
+    if (!cartItem) {
+        return res.status(404).json({ message: 'Item not found in cart' });
+    }
+
+  
+    const product = await Product.findById(productId);  
+    const salePrice = product.salePrice; 
+
+   
+    cartItem.quantity = quantity;
+    cartItem.totalPrice = salePrice * quantity;  
+
+  
+    await cart.save();
+
+   
+    const cartTotal = cart.items.reduce((total, item) => {
+        return total + item.totalPrice; 
+    }, 0);
+
+    
+    res.json({
+        itemTotalPrice: cartItem.totalPrice,  
+        cartTotal: cartTotal,               
+    });
+};
+const Checkout = async (req, res) => {
+    try {
+        const userId = req.session.user; 
+
+        
+        const cart = await Cart.findOne({ userId: userId }).populate('items.productId'); 
+
+        if (!cart || cart.items.length === 0) {
+            return res.redirect('/shop');
+        }
+
+        const user = await User.findById(userId); 
+        const addressData = await Address.findOne({ userId }).lean(); // Use `lean` for a plain object 
+     
+        res.render('checkout', {
+            user,
+            cartItems: cart.items,
+            userAddresses: addressData ? addressData.address : [],
+            subtotal: cart.items.reduce((total, item) => total + item.totalPrice, 0), 
+            cartTotal: cart.items.reduce((total, item) => total + item.totalPrice, 0)
+            
+        });
+    } catch (error) {
+        console.error('Error fetching cart or user data:', error);
+        res.status(500).send('Server error');
+    }
+};
+
+
 module.exports= {
-    showCart,
-    showPayment,
+   
+    addToCart,
+    getCart,
+    removeFromCart,
+    changeQuantity,
+    Checkout,
 }

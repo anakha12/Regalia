@@ -1,153 +1,206 @@
- 
 <%- include("../../views/partials/user/header") %>
-    <!-- Breadcrumb Section Begin -->
-    <section class="breadcrumb-option">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="breadcrumb__text">
-                        <h4>Check Out</h4>
-                        <div class="breadcrumb__links">
-                            <a href="./index.html">Home</a>
-                            <a href="./shop.html">Shop</a>
-                            <span>Check Out</span>
-                        </div>
+
+<!-- SweetAlert2 CDN for Sweet Alerts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Check Out</h4>
+                    <div class="breadcrumb__links">
+                        <a href="/">Home</a>
+                        <a href="/shop">Shop</a>
+                        <span>Check Out</span>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
-    <!-- Breadcrumb Section End -->
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
 
-    <!-- Checkout Section Begin -->
-    <section class="checkout spad">
-        <div class="container">
-            <div class="checkout__form">
-                <form action="#">
-                    <div class="row">
-                        <div class="col-lg-8 col-md-6">
-                            <h6 class="coupon__code"><span class="icon_tag_alt"></span> Have a coupon? <a href="#">Click
-                            here</a> to enter your code</h6>
-                            <h6 class="checkout__title">Billing Details</h6>
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>Fist Name<span>*</span></p>
-                                        <input type="text">
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>Last Name<span>*</span></p>
-                                        <input type="text">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="checkout__input">
-                                <p>Country<span>*</span></p>
-                                <input type="text">
-                            </div>
-                            <div class="checkout__input">
-                                <p>Address<span>*</span></p>
-                                <input type="text" placeholder="Street Address" class="checkout__input__add">
-                                <input type="text" placeholder="Apartment, suite, unite ect (optinal)">
-                            </div>
-                            <div class="checkout__input">
-                                <p>Town/City<span>*</span></p>
-                                <input type="text">
-                            </div>
-                            <div class="checkout__input">
-                                <p>Country/State<span>*</span></p>
-                                <input type="text">
-                            </div>
-                            <div class="checkout__input">
-                                <p>Postcode / ZIP<span>*</span></p>
-                                <input type="text">
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>Phone<span>*</span></p>
-                                        <input type="text">
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>Email<span>*</span></p>
-                                        <input type="text">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="checkout__input__checkbox">
-                                <label for="acc">
-                                    Create an account?
-                                    <input type="checkbox" id="acc">
-                                    <span class="checkmark"></span>
-                                </label>
-                                <p>Create an account by entering the information below. If you are a returning customer
-                                please login at the top of the page</p>
-                            </div>
-                            <div class="checkout__input">
-                                <p>Account Password<span>*</span></p>
-                                <input type="text">
-                            </div>
-                            <div class="checkout__input__checkbox">
-                                <label for="diff-acc">
-                                    Note about your order, e.g, special noe for delivery
-                                    <input type="checkbox" id="diff-acc">
-                                    <span class="checkmark"></span>
+<!-- Checkout Section Begin -->
+<section class="checkout spad">
+    <div class="container">
+        <div class="row">
+            <!-- Left Column: Product Details and Address Form -->
+            <div class="col-lg-8 col-md-12">
+                <h6 class="checkout__title">Your Order</h6>
+                <!-- Product Details Table -->
+                <div class="checkout__order__products">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Product Image</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (cartItems.length === 0) { %>
+                                <tr>
+                                    <td colspan="5" class="text-center">Your cart is empty.</td>
+                                </tr>
+                            <% } else { %>
+                                <% cartItems.forEach(item => { %>
+                                    <tr>
+                                        <td><%= item.productId.productName %></td>
+                                        <td><img src="/uploads/product-images/<%= item.productId.productImage && item.productId.productImage.length > 0 ? item.productId.productImage[0] : 'default-image.jpg' %>" alt="<%= item.productId.productName %>" style="width: 100px; height: auto;"></td>
+                                        <td>$<%= item.productId.salePrice %></td>
+                                        <td><%= item.quantity %></td>
+                                        <td>$<%= item.totalPrice.toFixed(2) %></td>
+                                    </tr>
+                                <% }); %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h6 class="checkout__title">Billing Details</h6>
+                <% if (userAddresses && userAddresses.length > 0) { %>
+                    <p>Your Addresses:</p>
+                    <form action="/checkout/select-address" method="POST" style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 10px;">
+                        <% userAddresses.forEach((address, index) => { %>
+                            <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; width: 250px; position: relative; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
+                                <input 
+                                    type="radio" 
+                                    name="selectedAddress" 
+                                    value="<%= address._id %>" 
+                                    id="address-<%= index %>" 
+                                    <% if (index === 0) { %> checked <% } %>
+                                    style="position: absolute; top: 10px; left: 10px; width: 16px; height: 16px;">
+                                
+                                <label for="address-<%= index %>" style="margin-left: 30px;">
+                                    <strong><%= address.addressType %> Address:</strong><br>
+                                    Name: <%= address.name %><br>
+                                    City: <%= address.city %><br>
+                                    Landmark: <%= address.landMark %><br>
+                                    State: <%= address.state %><br>
+                                    Pincode: <%= address.pincode %><br>
+                                    Phone: <%= address.phone %><br>
+                                    <% if (address.altPhone) { %>
+                                        Alt Phone: <%= address.altPhone %><br>
+                                    <% } %>
                                 </label>
                             </div>
-                            <div class="checkout__input">
-                                <p>Order notes<span>*</span></p>
-                                <input type="text"
-                                placeholder="Notes about your order, e.g. special notes for delivery.">
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <div class="checkout__order">
-                                <h4 class="order__title">Your order</h4>
-                                <div class="checkout__order__products">Product <span>Total</span></div>
-                                <ul class="checkout__total__products">
-                                    <li>01. Vanilla salted caramel <span>$ 300.0</span></li>
-                                    <li>02. German chocolate <span>$ 170.0</span></li>
-                                    <li>03. Sweet autumn <span>$ 170.0</span></li>
-                                    <li>04. Cluten free mini dozen <span>$ 110.0</span></li>
-                                </ul>
-                                <ul class="checkout__total__all">
-                                    <li>Subtotal <span>$750.99</span></li>
-                                    <li>Total <span>$750.99</span></li>
-                                </ul>
-                                <div class="checkout__input__checkbox">
-                                    <label for="acc-or">
-                                        Create an account?
-                                        <input type="checkbox" id="acc-or">
-                                        <span class="checkmark"></span>
-                                    </label>
-                                </div>
-                                <p>Lorem ipsum dolor sit amet, consectetur adip elit, sed do eiusmod tempor incididunt
-                                ut labore et dolore magna aliqua.</p>
-                                <div class="checkout__input__checkbox">
-                                    <label for="payment">
-                                        Check Payment
-                                        <input type="checkbox" id="payment">
-                                        <span class="checkmark"></span>
-                                    </label>
-                                </div>
-                                <div class="checkout__input__checkbox">
-                                    <label for="paypal">
-                                        Paypal
-                                        <input type="checkbox" id="paypal">
-                                        <span class="checkmark"></span>
-                                    </label>
-                                </div>
-                                <button type="submit" class="site-btn">PLACE ORDER</button>
-                            </div>
-                        </div>
+                        <% }); %>
+                    </form>
+                <% } else { %>
+                    <p>No saved address. Please add an address below.</p>
+                    <div>
+                        <a href="/addAddressCart">
+                          <button class="btn btn-primary w-70">
+                            Add address
+                          </button>
+                        </a>
+                      </div>
+                <% } %>
+            </div>
+
+            <!-- Right Column: Cart Summary and Payment -->
+            <div class="col-lg-4 col-md-12" style="position: sticky; top: 0; height: 100vh;">
+                <div class="checkout__order">
+                    <h4 class="order__title">Your Order Summary</h4>
+                    <div class="checkout__order__products">Product <span>Total</span></div>
+                    <ul class="checkout__total__products">
+                        <% cartItems.forEach(item => { %>
+                            <li><%= item.productId.productName %> <span>$<%= item.totalPrice.toFixed(2) %></span></li>
+                        <% }); %>
+                    </ul>
+                    <ul class="checkout__total__all">
+                        <li>Subtotal <span>$<%= subtotal.toFixed(2) %></span></li>
+                        <li>Total <span>$<%= cartTotal.toFixed(2) %></span></li>
+                    </ul>
+                    <div class="checkout__input__checkbox">
+                        <label for="payment">
+                            Cash on delivery
+                            <input type="checkbox" id="payment">
+                            <span class="checkmark"></span>
+                        </label>
                     </div>
-                </form>
+                    <div class="checkout__input__checkbox">
+                        <label for="paypal">
+                            Google Pay
+                            <input type="checkbox" id="paypal">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                    <button id="proceedToPay" class="site-btn">Proceed to Pay</button>
+                </div>
             </div>
         </div>
-    </section>
-    <!-- Checkout Section End -->
-    <%- include("../../views/partials/user/footer") %>
+    </div>
+</section>
+<!-- Checkout Section End -->
+<script>
+    document.getElementById('proceedToPay').addEventListener('click', function(event) {
+    event.preventDefault();
+
+    const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked').value;
+    const paymentMethod = document.querySelector('input[id="payment"]').checked ? 'Cash on Delivery' : 
+                          document.querySelector('input[id="paypal"]').checked ? 'Google Pay' : null;
+
+    if (!selectedAddress || !paymentMethod) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Please select an address and a payment method to proceed.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+
+
+    fetch('/addToOrder', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            selectedAddressId: selectedAddress, 
+            paymentMethod: paymentMethod,
+            couponApplied: false  
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Order Placed Successfully!',
+                text: 'Thank you for your purchase. Your order has been placed.',
+                icon: 'success',
+                confirmButtonText: 'Go to Orders'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/order";
+                }
+            });
+        } else {
+            Swal.fire({
+                title: 'Order Failed',
+                text: data.message || 'There was an issue placing your order. Please try again.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Order Failed',
+            text: 'An unexpected error occurred. Please try again later.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    });
+});
+
+</script>
+
+
+<%- include("../../views/partials/user/footer") %>

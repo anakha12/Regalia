@@ -43,6 +43,7 @@ async function sendVerificationEmail(email, otp) {
 const userProfile = async (req, res) => {
     try {
         const userId = req.session.user;
+        console.log(userId)
         if (!userId) return res.redirect("/login");
 
         const userData = await User.findById(userId);
@@ -309,6 +310,16 @@ const addAddress=async(req,res)=>{
     }
 }
 
+const addAddressCart=async(req,res)=>{
+    try {
+        const user=req.session.user;
+        res.render('add-address-cart',{user:user})
+    } catch (error) {
+        console.error(error)
+        res.redirect('/pageNotFound')
+    }
+}
+
 const addAddressPost= async(req,res)=>{
     try {
         const userId=req.session.user;
@@ -333,6 +344,33 @@ const addAddressPost= async(req,res)=>{
     }
     
 }
+
+
+const addAddressPostCart= async(req,res)=>{
+    try {
+        const userId=req.session.user;
+        const userData=await User.findOne({_id:userId});
+        const {addressType,name,city,landMark,state,pincode,phone,altPhone}=req.body;
+        const userAddress=await Address.findOne({userId:userData._id});
+        if(!userAddress){
+            const newAddress= Address({
+            userId:userData._id,
+            address:[{addressType,name,city,landMark,state,pincode,phone,altPhone}]
+        });
+        await newAddress.save();
+        }else{
+            userAddress.address.push({addressType,name,city,landMark,state,pincode,phone,altPhone});
+            await userAddress.save();
+        }
+
+        res.redirect('/checkout')
+    } catch (error) {
+        console.error(error);
+
+    }
+    
+}
+
 
 const editAddress=async(req,res)=>{
     try {
@@ -426,4 +464,6 @@ module.exports = {
     editAddress,
     editAddressPost,
     deleteAddress,
+    addAddressPostCart,
+    addAddressCart,
 };

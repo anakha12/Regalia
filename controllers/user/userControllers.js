@@ -1,4 +1,4 @@
-const { send, redirect, json, render } = require('express/lib/response');
+
 const User=require('../../models/userSchema');
 const Category=require('../../models/categorySchema');
 const Product=require('../../models/productSchema')

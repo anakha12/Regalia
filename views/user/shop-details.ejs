@@ -83,23 +83,6 @@
                             <p><%= product.description%></p>
                             <div class="product__details__option">
 
-
-                                <!-- <div class="product__details__option__size">
-                                    <span>Size:</span>
-                                    <label for="xxl">xxl
-                                        <input type="radio" id="xxl">
-                                    </label>
-                                    <label class="active" for="xl">xl
-                                        <input type="radio" id="xl">
-                                    </label>
-                                    <label for="l">l
-                                        <input type="radio" id="l">
-                                    </label>
-                                    <label for="sm">s
-                                        <input type="radio" id="sm">
-                                    </label>
-                                </div> -->
-
                                 
                                 <div class="product__details__option__color">
                                     <span>Color:</span>
@@ -121,12 +104,17 @@
                                 </div>
                             </div>
                             <div class="product__details__cart__option">
-                                <div class="quantity">
-                                    <div class="pro-qty">
-                                        <input type="text" value="1">
+                                
+                                <form id="add-to-cart-form" action="" class="add-to-cart-form" data-product-id="<%= product._id %>" method="">
+                                    <input type="hidden" name="productId" value="<%= product._id %>">
+                                    <div class="quantity">
+                                        <div class="pro-qty">
+                                            <input type="text" name="quantity" value="1">
+                                        </div>
                                     </div>
-                                </div>
-                                <a href="/shopping-cart" class="primary-btn">add to cart</a>
+                                    <button type="submit" class="primary-btn">Add to Cart</button>
+                                </form>
+                                
                             </div>
                             <div class="product__details__btns__option">
                                 <a href="#"><i class="fa fa-heart"></i> add to wishlist</a>
@@ -232,4 +220,68 @@
             zoomImage.style.transform = 'scale(1)';  // Reset zoom scale
         });
     });
+    document.addEventListener('DOMContentLoaded', function () {
+    const addToCartForm = document.querySelector('#add-to-cart-form');
+    console.log(addToCartForm);  // Check if form is found
+    
+    if (addToCartForm) {
+        addToCartForm.addEventListener('submit', async function (e) {
+            e.preventDefault();  // Prevent form from submitting traditionally
+            
+            const productId = this.dataset.productId;
+            const quantityInput = this.querySelector('input[name="quantity"]');
+
+            if (quantityInput) {
+                const quantity = quantityInput.value;
+                console.log("Form submitted. Product ID:", productId, "Quantity:", quantity);
+
+                try {
+                    const response = await fetch('/addToCart', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, quantity })
+                    });
+
+                    if (response.ok) {
+                        Swal.fire({
+                            title: 'Product Added to Cart!',
+                            text: 'The product has been successfully added to your cart.',
+                            icon: 'success',
+                            showCancelButton: true,
+                            confirmButtonText: 'Go to Cart',
+                            cancelButtonText: 'Continue Shopping'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/cart';
+                            }
+                        });
+                    } else {
+                        const errorText = await response.text();
+                        Swal.fire({
+                            title: 'Error',
+                            text: errorText,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error adding to cart:', error);
+                    Swal.fire({
+                        title: 'Failed to Add to Cart',
+                        text: 'There was an issue adding the product to your cart. Please try again later.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            } else {
+                console.warn("Quantity input not found");
+            }
+        });
+    } else {
+        console.warn("No form with ID '#add-to-cart-form' found.");
+    }
+});
+
+
+
 </script>

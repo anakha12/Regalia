@@ -1,0 +1,227 @@
+<%- include("../../views/partials/user/header") %>
+<style>
+/* Style for the quantity container */
+.quantity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Style for the pro-qty div */
+.pro-qty {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* Style for the input field */
+.quantity-input {
+    width: 50px;
+    text-align: center;
+    border: none;
+    padding: 5px;
+    font-size: 16px;
+    outline: none;
+}
+
+/* Style for the buttons */
+.increase-qty, .decrease-qty {
+    width: 30px;
+    height: 30px;
+    background-color: #f0f0f0;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+/* Hover and focus effects */
+.increase-qty:hover, .decrease-qty:hover {
+    background-color: #e0e0e0;
+}
+
+.increase-qty:focus, .decrease-qty:focus {
+    outline: none;
+}
+
+/* Adding a border radius only to the corners */
+.increase-qty {
+    border-radius: 0 4px 4px 0;
+}
+
+.decrease-qty {
+    border-radius: 4px 0 0 4px;
+}
+
+</style>
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Shopping Cart</h4>
+                    <div class="breadcrumb__links">
+                        <a href="/">Home</a>
+                        <a href="/shop">Shop</a>
+                        <span>Shopping Cart</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="shopping-cart spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="shopping__cart__table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Product Image</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (items.length === 0) { %>
+                                <tr>
+                                    <td colspan="6" class="text-center">Your cart is empty.</td>
+                                </tr>
+                            <% } else { %>
+                                <% items.forEach(item => { %>
+                                    <tr>
+                                        <!-- Product Name Column -->
+                                        <td class="product__cart__item">
+                                            <div class="product__cart__item__text">
+                                                <h6><%= item.productId.productName %></h6>
+                                            </div>
+                                        </td>
+                                        <!-- Product Image Column -->
+                                        <td class="product__cart__item__pic">
+                                            
+                                            <img src="/uploads/product-images/<%= item.productId.productImage && item.productId.productImage.length > 0 ? item.productId.productImage[0] : 'default-image.jpg' %>" alt="<%= item.productId.productName %> Image" style="width: 100px; height: auto;">
+                                        </td>
+                                        
+                                        
+                                        <!-- Product Price Column -->
+                                        <td class="cart__price">
+                                            $<%= item.productId.salePrice %>
+                                        </td>
+                                        <!-- Quantity Column -->
+                                        <td class="quantity__item">
+                                            <div class="quantity">
+                                                
+                                                    <button class="decrease-qty" data-action="decrease" data-product-id="<%= item.productId._id %>">-</button>
+                                                    <input type="text" class="quantity-input" value="<%= item.quantity %>" readonly>
+                                                    <button class="increase-qty" data-action="increase" data-product-id="<%= item.productId._id %>">+</button>
+                                               
+                                            </div>
+                                        </td>
+                                        
+                                        <!-- Total Price Column -->
+                                        <td class="cart__price1">
+                                            $<%= item.totalPrice.toFixed(2) %>
+                                        </td>
+                                        <!-- Remove Item Column -->
+                                        <td class="cart__close">
+                                            <a href="/cart/remove/<%= item.productId._id %>"><i class="fa fa-close"></i></a> <!-- Link to remove the item -->
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="continue__btn">
+                            <a href="/shop">Continue Shopping</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <div class="continue__btn update__btn">
+                            <a href="#"><i class="fa fa-spinner"></i> Update cart</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="cart__discount">
+                    <h6>Discount codes</h6>
+                    <form action="#">
+                        <input type="text" placeholder="Coupon code">
+                        <button type="submit">Apply</button>
+                    </form>
+                </div>
+                <div class="cart__total">
+                    <h6>Cart total</h6>
+                    <ul>
+                        <li>Subtotal <span class="subtotal-price">$<%= subtotal.toFixed(2) %></span></li>
+                        <li>Total <span class="total-price">$<%= total.toFixed(2) %></span></li>
+                        
+                    </ul>
+                    <a href="/checkout" class="primary-btn">Proceed to checkout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<%- include("../../views/partials/user/footer") %>
+<script>
+   document.querySelectorAll('.decrease-qty, .increase-qty').forEach(button => {
+    button.addEventListener('click', function() {
+        const action = this.getAttribute('data-action');
+        const productId = this.getAttribute('data-product-id');
+        const quantityInput = this.parentElement.querySelector('.quantity-input');
+        let currentQuantity = parseInt(quantityInput.value);
+      
+        // Modify quantity based on button action
+        if (action === 'decrease' && currentQuantity > 1) {
+            currentQuantity--;
+        } else if (action === 'increase') {
+            currentQuantity++;
+        }
+
+        // Send the updated quantity to the server
+        fetch(`/cart/update-quantity/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ quantity: currentQuantity, }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update the quantity input field
+            quantityInput.value = currentQuantity;
+
+            // Update the total price for this item (itemTotalPrice should be sent from the server)
+            const totalPriceElement = this.closest('tr').querySelector('.cart__price1');
+            totalPriceElement.textContent = `$${(data.itemTotalPrice).toFixed(2)}`;
+
+            // Update the overall cart total
+            const cartTotalElement = document.querySelector('.cart__total .total-price');
+            cartTotalElement.textContent = `$${(data.cartTotal).toFixed(2)}`;
+
+            // Optionally, update the subtotal (if you have that displayed separately)
+            const subtotalElement = document.querySelector('.cart__total .subtotal-price');
+            subtotalElement.textContent = `$${(data.cartTotal).toFixed(2)}`; // If you want to show it as a separate field
+        })
+        .catch(error => console.error('Error updating quantity:', error));
+    });
+});
+
+</script>

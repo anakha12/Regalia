@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router(); 
 const userController= require('../controllers/user/usercontrollers');
 const profileController= require('../controllers/user/profileController');
+const orderController= require('../controllers/user/orderController');
 const cartController= require('../controllers/user/cartController');
 const passport = require('passport');
 const {userAuth,adminAuth}=require('../middlewares/auth');
@@ -47,13 +48,17 @@ router.get('/editAddress',userAuth,profileController.editAddress);
 router.post('/editAddress',userAuth,profileController.editAddressPost);
 router.get('/deleteAddress',userAuth,profileController.deleteAddress)
 
-router.get('/shopping-cart',userAuth,cartController.showCart)
-router.get('/checkout',userAuth,cartController.showPayment)
+router.post('/addToCart',userAuth,cartController.addToCart)
+router.get('/cart',userAuth,cartController.getCart)
+router.get('/cart/remove/:productId', cartController.removeFromCart);
+router.post('/cart/update-quantity/:productId',cartController.changeQuantity)
+router.get('/checkout',userAuth,cartController.Checkout)
+router.get('/addAddressCart',userAuth,profileController.addAddressCart);
+router.post('/addAddressCart',userAuth,profileController.addAddressPostCart);
 
-
-
-
-
+router.post('/addToOrder',userAuth,orderController.addToOrder)
+router.get('/order',userAuth,orderController.getOrders);
+router.post('/orders/cancel',orderController.cancelOrder)
 router.get('/auth/google/callback', 
     passport.authenticate('google', { failureRedirect: '/signup' }), 
     (req, res) => {
