@@ -38,19 +38,26 @@
                   Status: 
                   <% if (order.status === 'Pending') { %>
                     <span class="status-pending">Pending</span>
+                  <% } else if (order.status === 'Placed') { %>
+                    <span class="status-placed">Placed</span>
                   <% } else if (order.status === 'Processing') { %>
                     <span class="status-processing">Processing</span>
                   <% } else if (order.status === 'Shipped') { %>
                     <span class="status-shipped">Shipped</span>
+                  <% } else if (order.status === 'Out for Delivery') { %>
+                    <span class="status-out-for-delivery">Out for Delivery</span>
                   <% } else if (order.status === 'Delivered') { %>
                     <span class="status-delivered">Delivered</span>
+                  <% } else if (order.status === 'Cancelled') { %>
+                    <span class="status-cancelled">Cancelled</span>
                   <% } else { %>
                     <span class="status-default">Unknown</span>
                   <% } %>
                 </p>
+                
 
                 <p>
-                  <% if (order.status === 'Pending' || order.status === 'Processing'||order.status === 'Shipped') { %>
+                  <% if (order.status === 'Pending' || order.status === 'Processing'||order.status === 'Shipped'||order.status === 'Out for Delivery'||order.status === 'Placed') { %>
                     <button onclick="cancelOrder('<%= order._id %>', '<%= item.product._id %>')">Cancel</button>
                   <% } else { %>
                     <span>Not Cancelable</span>
@@ -183,6 +190,15 @@
 
   .status-delivered {
     background-color: #e9c46a;
+    color: #fff;
+  }
+  .status-placed {
+    background-color: #9cbcd8; 
+    color: #fff;
+  }
+
+  .status-out-for-delivery {
+    background-color: #007bff;
     color: #fff;
   }
 

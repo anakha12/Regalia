@@ -9,9 +9,9 @@ const orderSchema= new mongoose.Schema({
             default:()=>uuidv4(),
             unique:true
         },
-        userId: {  // Add this field to associate products with a user
+        userId: { 
             type: Schema.Types.ObjectId,
-            ref: "User2",  // Reference to the User model
+            ref: "User2", 
             required: true
           },
           Ordereditems: [{
@@ -63,7 +63,7 @@ const orderSchema= new mongoose.Schema({
         },
         address: {
             type: Schema.Types.ObjectId,
-            ref: "Address",  // should be "Address" if the ObjectId belongs to the Address model
+            ref: "Address",  
             required: true
         },
         
@@ -73,7 +73,7 @@ const orderSchema= new mongoose.Schema({
         status: {
             type: String,
             required: true,
-            enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
+            enum: ['Pending','Processing', 'Placed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled']
         },
         
         createdOn:{

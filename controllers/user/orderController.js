@@ -136,6 +136,16 @@ const cancelOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Order cannot be canceled at this stage." });
     }
 
+    const orderedItem = order.Ordereditems[itemIndex];
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found in database." });
+    }
+    product.quantity += orderedItem.quantity;
+    await product.save();
+
+
+
     order.finalAmount -= order.Ordereditems[itemIndex].totalPrice;
 
     order.Ordereditems.splice(itemIndex, 1);

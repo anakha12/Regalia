@@ -218,7 +218,7 @@ const getEditCategory= async (req,res)=>{
 const editCategory= async(req,res)=>{
     try {
         
-        
+        let id = req.params.id;
        const {categoryName,description}=req.body;
        const existingCategory= await Category.findOne({name:categoryName});
        if(existingCategory){
@@ -229,7 +229,8 @@ const editCategory= async(req,res)=>{
          description:description,
        },{new:true});
        if(updateCategory){
-        res.redirect("/admin/category");
+        res.status(200).json({message:"category updated"});
+        // .redirect("/admin/category");
        }else{
         res.status(404).json({error:"category not found"})
        }

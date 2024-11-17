@@ -10,9 +10,7 @@ const getAllOrders = async (req, res) => {
         .populate('address')
         .exec();
   
-      if (!orders || orders.length === 0) {
-        return res.status(404).send('No orders found');
-      }
+     
   
       // Pass orders to the view
       res.render('order-admin', { orders ,user: req.user});
@@ -26,7 +24,7 @@ const getAllOrders = async (req, res) => {
     const { orderId, newStatus } = req.body;
 
     try {
-        const validStatuses = ['Pending', 'Placed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
+        const validStatuses = ['Pending','Processing', 'Placed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
         if (!validStatuses.includes(newStatus)) {
             return res.status(400).json({ success: false, message: 'Invalid status' });
         }
@@ -49,7 +47,8 @@ const getAllOrders = async (req, res) => {
 };
 
 const cancelOrder = async (req, res) => {
-    const { orderId } = req.body;
+   
+    const { orderId,productId,quantity } = req.body;
 
     try {
         const updatedOrder = await Order.findByIdAndUpdate(
@@ -62,6 +61,17 @@ const cancelOrder = async (req, res) => {
         if (!updatedOrder) {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
+        const product = await Product.findById(productId);
+        const orderedItem = updatedOrder.Ordereditems.find(item => item.product._id.toString() === productId);
+        if (!orderedItem) {
+            return res.status(404).json({ success: false, message: "Product not found in order." });
+        }
+
+       
+        product.quantity += orderedItem.quantity;
+
+       
+        await product.save();
 
         res.json({ success: true, message: "Order has been cancelled", updatedOrder });
     } catch (error) {

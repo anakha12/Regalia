@@ -2,7 +2,8 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6 mt-60">
-            <form method="post" id="editCategoryForm" action="/admin/editCategory/<%=category._id%>" >
+           <form method="post" id="editCategoryForm" action="">
+
                 <div class="d-grid text-end mt-30 col-md-5">
                     <button class="btn btn-primary" type="submit">Update category</button>
                 </div>
@@ -46,7 +47,10 @@ document.getElementById("editCategoryForm").addEventListener("submit", async fun
             return;  // Stop submission if validation fails
         }    
     try {
-            const response = await fetch("/admin/editCategory/${categoryId}", {
+       
+        const response = await fetch(`/admin/editCategory/${categoryId}`, {
+
+                
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -58,15 +62,15 @@ document.getElementById("editCategoryForm").addEventListener("submit", async fun
             });
 
             const data = await response.json();
-
+            console.log(response);
             if (response.ok) {
                 // Success case
                 Swal.fire({
                     title: "Category Updated",
-                    text: data.success || "The category has been successfully updated!",
+                    text: data.message || "The category has been successfully updated!",
                     icon: "success",
                 }).then(() => {
-                    window.location.href = "/admin/category";  // Redirect to category listing after success
+                    window.location.href = "/admin/category"; 
                 });
             } else {
                 Swal.fire({

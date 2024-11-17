@@ -26,7 +26,7 @@
             <% orders.forEach(order => { %>
                 <% order.Ordereditems.forEach(item => { %>
                 <tr>
-                    <td><%= order._id %></td>
+                    <td><%= order.orderId %></td>
                     <td><%= order.userId.email %></td>
                     <td><%= item.totalPrice%></td>
                       
@@ -35,7 +35,7 @@
                     <td id="status-<%= order._id %>"><%= order.status %></td>
                     <td>
                         <button class="btn btn-success btn-sm" onclick="updateStatus('<%= order._id %>')">Update Status</button>
-                        <button class="btn btn-danger btn-sm" onclick="cancelOrder('<%= order._id %>')">Cancel Order</button>
+                        <button class="btn btn-danger btn-sm" onclick="cancelOrder('<%= order._id %>','<%= item.product._id %>','<%= item.quantity %>')">Cancel Order</button>
                     </td>
                 </tr>
                 <% }) %>
@@ -98,7 +98,7 @@
 
 
     // Function to cancel an order
-    function cancelOrder(orderId) {
+    function cancelOrder(orderId,productId,quantity) {
         Swal.fire({
             title: 'Are you sure?',
             text: "This will cancel the order.",
@@ -111,7 +111,7 @@
                 $.ajax({
                     url: '/admin/cancelOrder',
                     method: 'POST',
-                    data: { orderId: orderId },
+                    data: { orderId: orderId ,productId: productId},
                     success: (response) => {
                         if (response.success) {
                             document.getElementById(`status-${orderId}`).innerText = 'Cancelled';

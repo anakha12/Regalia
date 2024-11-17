@@ -59,7 +59,9 @@ router.post('/addAddressCart',userAuth,profileController.addAddressPostCart);
 router.post('/addToOrder',userAuth,orderController.addToOrder)
 router.get('/order',userAuth,orderController.getOrders);
 router.post('/orders/cancel',orderController.cancelOrder);
-// router.get('/shop',userController.shopFilter);
+router.get('/filterShop',userController.shop);
+router.get('/search', userController.searchProducts);
+
 router.get('/auth/google/callback', 
     passport.authenticate('google', { failureRedirect: '/signup' }), 
     (req, res) => {

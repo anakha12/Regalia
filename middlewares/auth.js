@@ -1,4 +1,6 @@
+const mongoose = require('mongoose');
 const User = require('../models/userSchema');
+
 const userAuth = async (req, res, next) => {
    
 
@@ -23,24 +25,33 @@ const userAuth = async (req, res, next) => {
     }
 };
 
-const adminAuth = (req, res, next) => {
-    // Add headers to prevent caching
+const adminAuth = async (req, res, next) => {
+    
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
 
-    User.findOne({ isAdmin: true })
-        .then(data => {
-            if (data) {
-                next();     
+   
+    if (req.session.admin) {
+       
+        try {
+            
+            const admin = await User.findById(req.session.admin);
+            if (admin && admin.isAdmin) {
+                req.admin = admin; 
+                return next(); 
             } else {
-                res.redirect('/admin/login');
+               
+                return res.status(403).send('Access denied: Not an admin');
             }
-        })
-        .catch(error => {
-            console.log("Error in admin auth middleware:", error);
-            res.status(500).send("Internal server error");
-        });
+        } catch (error) {
+            console.error('Error in admin auth middleware:', error);
+            return res.status(500).send("Internal server error");
+        }
+    } else {
+      
+        return res.redirect('/admin/login');
+    }
 };
 
 module.exports = {

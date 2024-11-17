@@ -84,46 +84,47 @@ const loadShopDetails = async (req, res) => {
 };
 
 
-// const shopFilter = async (req, res) => {
-//     try {
-//         const { search, categories, priceRange } = req.query;
+const shop = async (req, res) => {
+   
+    try {
+        const { category } = req.query; 
+        console.log( req.query)
+        let filter = {};
+        if (category) {
+            filter.category = category; 
+        }
 
-//         let query = {};
+        const categories = await Category.find();
+        const products = await Product.find(filter);
+
+        const user = req.session.user || null;
+
+      
+        res.render('shop', { categories, products,user });
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(500).send("An error occurred while loading the shop.");
+    }
+};
+const searchProducts = async (req, res) => {
+    const searchQuery = req.query.q || ""; 
+
+    try {
+        
+        const products = await Product.find({
+            productName: { $regex: searchQuery, $options: "i" }
+        });
 
         
-//         if (search) {
-//             query.productName = { $regex: search, $options: 'i' }; 
-//         }
-
-       
-//         if (categories) {
-//             query.category = { $in: Array.isArray(categories) ? categories : [categories] };
-//         }
+        const categories = await Category.find(); 
 
         
-//         if (priceRange) {
-//             const [min, max] = priceRange.split('-').map(Number);
-//             query.salePrice = max
-//                 ? { $gte: min, $lte: max } 
-//                 : { $gte: min };        
-//         }
-
-    
-//         const products = await Product.find(query);
-
-       
-//         const allCategories = await Category.find(); 
-
-//         res.render('shop', { products, categories: allCategories, selectedCategories: categories });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).send('Internal Server Error');
-//     }
-// };
-
-
-
-
+        res.render('shop', { products, categories });
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(500).send("An error occurred while fetching products.");
+    }
+};
 
 
 
@@ -261,9 +262,6 @@ const verifyOtp = async (req, res) => {
 
             await saveUserData.save();
 
-           
-            
-           
             res.json({ success: true, message: "OTP verified successfully", redirectUrl: '/login' });
         } else {
             res.status(400).json({ success: false, message: "Invalid OTP, please try again" });
@@ -359,5 +357,6 @@ module.exports={
     logout,
     loadShop,
     loadShopDetails,
-    // shopFilter,
+    shop,
+    searchProducts,
 }

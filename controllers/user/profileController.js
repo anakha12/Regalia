@@ -43,7 +43,7 @@ async function sendVerificationEmail(email, otp) {
 const userProfile = async (req, res) => {
     try {
         const userId = req.session.user;
-        console.log(userId)
+        
         if (!userId) return res.redirect("/login");
 
         const userData = await User.findById(userId);
@@ -78,7 +78,7 @@ const loadEditProfile = async (req, res) => {
 
 const changeEmail = async (req, res) => {
     try {
-        res.render('change-email', { user: req.session.user || null });
+        res.render('change-email', { user: req.session.user});
     } catch (error) {
         res.redirect("/pageNotFound");
     }   
@@ -238,7 +238,7 @@ const getResetPassPage = async (req, res) => {
 
 const postNewPassword = async (req, res) => {
     try {
-        console.log(req.body)
+        
         const { userId, newPassword, confirmPassword } = req.body;
         
         
