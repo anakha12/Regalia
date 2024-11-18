@@ -128,11 +128,11 @@ input:focus::-moz-placeholder {
 }
 
 a {
-  color: #088178;
+  color: #101312;
 }
 
 a:hover {
-  color: #046963;
+  color: #0f0f0f;
 }
 
 /*--- Common Classes---------------------*/
@@ -679,7 +679,7 @@ p {
   font-weight: 400;
   line-height: 24px;
   margin-bottom: 5px;
-  color: #465b52;
+  color: #0a0a0a;
 }
 
 p:last-child {
@@ -727,7 +727,7 @@ strong,
   position: absolute;
   bottom: 0;
   left: 0;
-  background-color: #088178;
+  background-color: #121313;
 }
 
 .section-title span {
@@ -813,7 +813,7 @@ h5.widget-title {
 /*COMPONENTS -> BUTTONS*/
 .btn-default {
   color: #fff;
-  background-color: #088178;
+  background-color: #121313;
   border-radius: 50px;
   padding: 13px 28px;
 }
@@ -868,12 +868,12 @@ h5.widget-title {
 }
 
 .btn-shadow-brand:hover {
-  border: 1px solid #088178;
+  border: 1px solid #0d0e0e;
 }
 
 .btn-brand {
-  background-color: #088178;
-  border-color: #088178;
+  background-color: #080808;
+  border-color: #080808;
 }
 
 button.submit, button[type='submit'] {
@@ -882,17 +882,17 @@ button.submit, button[type='submit'] {
   padding: 12px 40px;
   color: #ffffff;
   border: none;
-  background-color: #088178;
-  border: 1px solid #046963;
+  background-color: #090a0a;
+  border: 1px solid #0d0f0f;
   border-radius: 5px;
 }
 
 button.submit:hover, button[type='submit']:hover {
-  background-color: #046963 !important;
+  background-color: #0c0c0c !important;
 }
 
 .btn-brand:hover {
-  background-color: #046963 !important;
+  background-color: #0f0f0f !important;
 }
 
 .btn-login {
@@ -927,8 +927,8 @@ button.submit:hover, button[type='submit']:hover {
   padding: 12px 30px;
   border-radius: 4px;
   color: #fff;
-  border: 1px solid #046963;
-  background-color: #088178;
+  border: 1px solid #0a0a0a;
+  background-color: #050505;
   cursor: pointer;
   -webkit-transition: all 300ms linear 0s;
   transition: all 300ms linear 0s;
@@ -936,7 +936,7 @@ button.submit:hover, button[type='submit']:hover {
 }
 
 .btn:hover, .button:hover {
-  background-color: #046963;
+  background-color: #080808;
 }
 
 .btn.btn-sm, .button.btn-sm {
@@ -967,7 +967,7 @@ button.submit:hover, button[type='submit']:hover {
 
 .btn.btn-brush, .button.btn-brush {
   background-color: transparent;
-  color: #088178;
+  color: #0d0e0d;
   border: 0;
   padding: 14px 80px 14px 65px;
   background-repeat: no-repeat;
@@ -2240,7 +2240,7 @@ label {
 
 .dashboard-menu ul li a.active {
   color: #fff;
-  background-color: #088178;
+  background-color: #0f0f0f;
 }
 
 .dashboard-menu ul li a.active i {

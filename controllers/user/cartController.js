@@ -20,16 +20,16 @@ const addToCart = async (req, res) => {
             return res.redirect('/login'); 
         }
        
-        const { productId, quantity } = req.body;
-       
+        let  { productId, quantity } = req.body;
+        quantity = quantity ? parseInt(quantity, 10) : 1;
         const product = await Product.findById(productId);
         if (!product) {
-            return res.status(404).send('Product not found');
+            return res.status(404).json({ error: 'Product not found' });
         }
 
-        if (!product.salePrice || isNaN(quantity) || quantity <= 0) {
+        if ( isNaN(quantity) || quantity <= 0) {
             console.error('Invalid price or quantity');
-            return res.status(400).send('Invalid price or quantity');
+            return res.status(400).json({ error: 'Invalid quantity' });
         }
 
         let cart = await Cart.findOne({ userId });
@@ -57,10 +57,11 @@ const addToCart = async (req, res) => {
         }
 
         await cart.save();
-        res.status(200).send('product added successfully ');
+        return res.status(200).json({ message: 'Product added successfully' });
+        
     } catch (error) {
         console.error('Error adding to cart:', error);
-        res.status(500).send('Internal server error');
+        return res.status(500).json({ error: 'Internal server error' });
     }
 };
 
@@ -104,22 +105,16 @@ const removeFromCart = async (req, res) => {
         if (!userId) {
             return res.redirect('/login');
         }
-
-       
         const cart = await Cart.findOne({ userId });
 
-       
         if (!cart) {
             return res.status(404).send('Cart not found');
         }
 
-      
         cart.items = cart.items.filter(item => item.productId.toString() !== productId); // Remove by productId
 
-        
         await cart.save();
 
-        
         res.redirect('/cart');
     } catch (error) {
         console.error('Error removing product from cart:', error);

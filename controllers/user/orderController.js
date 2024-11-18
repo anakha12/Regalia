@@ -13,7 +13,8 @@ const env= require('dotenv').config();
 const addToOrder = async (req, res) => {
   try {
     const userId = req.session.user;
-    const { selectedAddressId, couponApplied } = req.body;
+    console.log(req.body)
+    const { selectedAddressId, paymentMethod, couponApplied } = req.body;
 
     const cart = await Cart.findOne({ userId }).populate('items.productId');
     if (!cart || cart.items.length === 0) {
@@ -49,6 +50,7 @@ const addToOrder = async (req, res) => {
         quantity,
         price,
         totalPrice: itemTotalPrice,
+        paymentMethod,
         discountPrice,
         name,
         images,
@@ -72,6 +74,7 @@ const addToOrder = async (req, res) => {
       discount,
       finalAmount,
       address: selectedAddressId,
+      paymentMethod,
       invoiceDate: new Date(),
       status: 'Pending',
       couponApplied,

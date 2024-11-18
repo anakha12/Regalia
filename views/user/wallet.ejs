@@ -1,0 +1,147 @@
+<%- include("../../views/partials/user/header") %>
+
+<style>
+/* General Wallet Section Styling */
+.wallet-section {
+    margin-top: 20px;
+}
+
+.wallet-balance {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.wallet-balance h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.wallet-balance p {
+    margin: 5px 0 0;
+    font-size: 16px;
+    color: #666;
+}
+
+.transaction-history {
+    margin-top: 30px;
+}
+
+.transaction-history h4 {
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: #333;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.transaction-table th,
+.transaction-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.transaction-table th {
+    background-color: #f1f1f1;
+    color: #333;
+    font-weight: bold;
+}
+
+.transaction-table td.amount.credit {
+    color: green;
+    font-weight: bold;
+}
+
+.transaction-table td.amount.debit {
+    color: red;
+    font-weight: bold;
+}
+
+/* Center Add Money Button */
+.add-money-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+</style>
+
+<section class="wallet-section spad">
+    <div class="container">
+        <!-- Wallet Balance -->
+        <div class="wallet-balance">
+            <h3>Wallet Balance</h3>
+            <p>₹<%= walletBalance.toFixed(2) %></p>
+        </div>
+
+        <!-- Add Money Button -->
+        <div class="add-money-container">
+            <a href="#" class="add-money-btn btn" data-bs-toggle="modal" data-bs-target="#addMoneyModal">
+                Add Money
+            </a>
+        </div>
+
+        <!-- Add Money Modal -->
+        <div class="modal fade" id="addMoneyModal" tabindex="-1" aria-labelledby="addMoneyModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addMoneyModalLabel">Add Money to Wallet</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addMoneyForm" action="/wallet/add-money" method="POST">
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Enter Amount</label>
+                                <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter amount to add" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">Add Money</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="transaction-history">
+            <h4>Transaction History</h4>
+            <% if (transactions.length === 0) { %>
+                <p>No transactions found.</p>
+            <% } else { %>
+                <table class="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Transaction ID</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% transactions.forEach(transaction => { %>
+                            <tr>
+                                <td><%= transaction.description %></td>
+                                <td><%= transaction._id %></td>
+                                <td><%= new Date(transaction.date).toLocaleString() %></td>
+                                <td class="amount <%= transaction.type === 'credit' ? 'credit' : 'debit' %>">
+                                    <%= transaction.type === 'credit' ? '+' : '-' %>$<%= transaction.amount.toFixed(2) %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                        
+                    </tbody>
+                </table>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<%- include("../../views/partials/user/footer") %>

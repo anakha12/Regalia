@@ -5,6 +5,8 @@ const userController= require('../controllers/user/usercontrollers');
 const profileController= require('../controllers/user/profileController');
 const orderController= require('../controllers/user/orderController');
 const cartController= require('../controllers/user/cartController');
+const wishlistController= require('../controllers/user/wishlistController');
+const walletController= require('../controllers/user/walletController');
 const passport = require('passport');
 const {userAuth,adminAuth}=require('../middlewares/auth');
 
@@ -61,6 +63,17 @@ router.get('/order',userAuth,orderController.getOrders);
 router.post('/orders/cancel',orderController.cancelOrder);
 router.get('/filterShop',userController.shop);
 router.get('/search', userController.searchProducts);
+
+
+
+
+router.post('/addToWishlist',userAuth,wishlistController.addToWishlist);
+router.get('/wishlist',userAuth,wishlistController.getWishlist)
+router.get('/wishlist/remove/:productId', wishlistController.removeFromWishlist);
+
+
+router.get('/wallet', userAuth, walletController.getWallet);
+router.post("/wallet/add-money",userAuth,walletController.addMoneyToWallet)
 
 router.get('/auth/google/callback', 
     passport.authenticate('google', { failureRedirect: '/signup' }), 
