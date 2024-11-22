@@ -12,7 +12,7 @@ const categoryInfo = async (req, res) => {
     try {
         let categoryData, totalCategories;
         
-        // Fetch category data with pagination
+        
         try {
             categoryData = await Category.find({})
                 .sort({ createdAt: -1 })
@@ -23,7 +23,7 @@ const categoryInfo = async (req, res) => {
             return res.redirect('/pageerror');
         }
 
-        // Count total categories
+      
         try {
             totalCategories = await Category.countDocuments();
         } catch (countError) {
@@ -48,8 +48,7 @@ const categoryInfo = async (req, res) => {
 
 const addCategory = async (req, res) => {
     const { name, description } = req.body;
-    
-    // First try-catch for checking if category exists
+   
     let existingCategory;
     try {
         existingCategory = await Category.findOne({ name });
@@ -61,7 +60,6 @@ const addCategory = async (req, res) => {
         return res.status(500).json({ error: "Error checking for existing category" });
     }
 
-    // Second try-catch for saving a new category
     try {
         const newCategory = new Category({
             name,
@@ -77,67 +75,58 @@ const addCategory = async (req, res) => {
 
 
 const addCategoryOffer = async (req, res) => {
+
     const percentage = parseInt(req.body.percentage);
     const categoryId = req.body.categoryId;
-    let category;
+    const maxDiscount=req.body.maxDiscount;
+
     try {
-        //  Retrieve the Category
-        category = await Category.findById(categoryId);
+
+        const category = await Category.findById(categoryId);
         if (!category) {
             return res.status(404).json({ status: false, message: "Category not found" });
         }
-    } catch (error) {
-        console.error("Error finding category:", error);
-        return res.status(500).json({ status: false, message: "Error finding category" });
-    }
 
-    let products;
-    try {
-        //  Retrieve Products in the Category
-        products = await Product.find({ category: category._id });
-    } catch (error) {
-        console.error("Error retrieving products:", error);
-        return res.status(500).json({ status: false, message: "Error retrieving products" });
-    }
+        const products = await Product.find({ category: category._id });
 
-    try {
-        // Check for Existing Product Offers
-        const hasProductOffer = products.some((product) => product.productOffer > percentage);
-        if (hasProductOffer) {
+        const hasHigherProductOffer = products.some(product => product.productOffer > percentage);
+        if (hasHigherProductOffer) {
             return res.status(400).json({
                 status: false,
-                message: "Product within this category already has a product offer",
+                message: "A product in this category already has a higher product offer",
             });
         }
-    } catch (error) {
-        console.error("Error checking product offers:", error);
-        return res.status(500).json({ status: false, message: "Error checking product offers" });
-    }
 
-    try {
-        //  Update Category and Product Offers
-        await Category.updateOne({ _id: categoryId }, { $set: { categoryOffer: percentage } });
+        category.categoryOffer = percentage;
+        await category.save();
+
         for (const product of products) {
-            product.productOffer = 0;
-            product.salePrice = product.regularPrice;
+            if (product.productOffer === 0) {
+                if(product.regularPrice - Math.floor(product.regularPrice * (percentage / 100))<100){
+                    product.salePrice = product.regularPrice - Math.floor(product.regularPrice * (percentage / 100));
+                }else{
+                    product.salePrice=product.regularPrice-maxDiscount;
+                }
+            }
             await product.save();
         }
-    } catch (error) {
-        console.error("Error updating category or products:", error);
-        return res.status(500).json({ status: false, message: "Error updating category or products" });
-    }
 
-    //  Return Success Response
-    res.json({ status: true });
+        res.json({ status: true, message: "Category offer applied successfully" });
+    } catch (error) {
+        console.error("Error in addCategoryOffer:", error);
+        res.status(500).json({ status: false, message: "Internal server error" });
+    }
 };
 
 
+
 const removeCategoryOffer = async (req, res) => {
+
     const categoryId = req.body.categoryId;
     
     let category;
     try {
-        //  Retrieve the Category
+        
         category = await Category.findById(categoryId);
         if (!category) {
             return res.status(404).json({ status: false, message: "Category not found" });
@@ -150,7 +139,6 @@ const removeCategoryOffer = async (req, res) => {
     const percentage = category.categoryOffer;
     let products;
     try {
-        //  Retrieve Products in the Category
         products = await Product.find({ category: category._id });
     } catch (error) {
         console.error("Error retrieving products:", error);
@@ -158,7 +146,7 @@ const removeCategoryOffer = async (req, res) => {
     }
 
     try {
-        // Adjust Product Prices
+ 
         if (products.length > 0) {
             for (const product of products) {
                 product.salePrice += Math.floor(product.regularPrice * (percentage / 100));
@@ -172,7 +160,6 @@ const removeCategoryOffer = async (req, res) => {
     }
 
     try {
-        //  Reset Category Offer
         category.categoryOffer = 0;
         await category.save();
     } catch (error) {
@@ -180,7 +167,6 @@ const removeCategoryOffer = async (req, res) => {
         return res.status(500).json({ status: false, message: "Error updating category" });
     }
 
-    // Return Success Response
     res.json({ status: true });
 };
 
@@ -230,7 +216,7 @@ const editCategory= async(req,res)=>{
        },{new:true});
        if(updateCategory){
         res.status(200).json({message:"category updated"});
-        // .redirect("/admin/category");
+        
        }else{
         res.status(404).json({error:"category not found"})
        }

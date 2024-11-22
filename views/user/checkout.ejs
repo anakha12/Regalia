@@ -2,6 +2,7 @@
 
 <!-- SweetAlert2 CDN for Sweet Alerts -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <!-- Breadcrumb Section Begin -->
 <section class="breadcrumb-option">
@@ -27,7 +28,7 @@
     <div class="container">
         <div class="row">
             <!-- Left Column: Product Details and Address Form -->
-            <div class="col-lg-8 col-md-12">
+            <div class="col-lg-8 col-md-12" >
                 <h6 class="checkout__title">Your Order</h6>
                 <!-- Product Details Table -->
                 <div class="checkout__order__products">
@@ -114,47 +115,70 @@
             </div>
 
             <!-- Right Column: Cart Summary and Payment -->
-            <div class="col-lg-4 col-md-12" style="position: sticky; top: 0; height: 100vh;">
-                <div class="checkout__order">
-                    <h4 class="order__title">Your Order Summary</h4>
-                    <div class="checkout__order__products">Product <span>Total</span></div>
-                    <ul class="checkout__total__products">
-                        <% cartItems.forEach(item => { %>
-                            <li><%= item.productId.productName %> <span>$<%= item.totalPrice.toFixed(2) %></span></li>
-                        <% }); %>
-                    </ul>
-                    <ul class="checkout__total__all">
-                        <li>Subtotal <span>$<%= subtotal.toFixed(2) %></span></li>
-                        <li>Total <span>$<%= cartTotal.toFixed(2) %></span></li>
-                    </ul>
-                    <div class="checkout__input__checkbox">
-                        <label for="payment">
-                            Cash on delivery
-                            <input type="checkbox" id="payment">
-                            <span class="checkmark"></span>
-                        </label>
-                    </div>
-                    <div class="checkout__input__checkbox">
-                        <label for="paypal">
-                            Google Pay
-                            <input type="checkbox" id="paypal">
-                            <span class="checkmark"></span>
-                        </label>
-                    </div>
-                    <button id="proceedToPay" class="site-btn">Place Order</button>
-                </div>
-            </div>
+            <!-- Right Column: Cart Summary and Payment -->
+<div class="col-lg-4 col-md-12" style="position: sticky; top: 0; height: 100vh;">
+    <div class="checkout__order">
+        <h4 class="order__title">Your Order Summary</h4>
+        <div class="checkout__order__products">Product <span>Total</span></div>
+        <ul class="checkout__total__products">
+            <% cartItems.forEach(item => { %>
+                <li><%= item.productId.productName %> <span>$<%= item.totalPrice.toFixed(2) %></span></li>
+            <% }); %>
+        </ul>
+        <ul class="checkout__total__all">
+            <li>Subtotal <span>$<%= subtotal.toFixed(2) %></span></li>
+            <li>Total <span>$<%= cartTotal.toFixed(2) %></span></li>
+        </ul>
+
+        <!-- Coupon Discount -->
+        <div class="cart__discount" style="margin: 20px 0;">
+            <h6>Discount Codes</h6>
+            <form action="#">
+                <input type="text" placeholder="Coupon code" style="width: 70%; margin-right: 10px;">
+                <button type="submit" style="padding: 5px 10px;">Apply</button>
+            </form>
+        </div>
+
+        <div class="checkout__input__checkbox">
+            <label for="payment">
+                Cash on delivery
+                <input type="checkbox" id="payment">
+                <span class="checkmark"></span>
+            </label>
+        </div>
+        <div class="checkout__input__checkbox">
+            <label for="paypal">
+                Razorpay
+                <input type="checkbox" id="paypal">
+                <span class="checkmark"></span>
+            </label>
+        </div>
+        <div class="checkout__input__checkbox">
+            <label for="wallet">
+                Wallet
+                <input type="checkbox" id="wallet">
+                <span class="checkmark"></span>
+            </label>
+        </div>
+        
+        <button id="proceedToPay" class="site-btn">Place Order</button>
+    </div>
+</div>
+
+
+
         </div>
     </div>
 </section>
 <!-- Checkout Section End -->
 <script>
-    document.getElementById('proceedToPay').addEventListener('click', function(event) {
+  document.getElementById('proceedToPay').addEventListener('click', function(event) {
     event.preventDefault();
 
     const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked').value;
     const paymentMethod = document.querySelector('input[id="payment"]').checked ? 'Cash on Delivery' : 
-                          document.querySelector('input[id="paypal"]').checked ? 'Google Pay' : null;
+                          document.querySelector('input[id="wallet"]').checked ? 'Wallet' : 
+                          document.querySelector('input[id="paypal"]').checked ? 'Razorpay' : null;
 
     if (!selectedAddress || !paymentMethod) {
         Swal.fire({
@@ -166,50 +190,155 @@
         return;
     }
 
-
-    fetch('/addToOrder', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            selectedAddressId: selectedAddress, 
-            paymentMethod: paymentMethod,
-            couponApplied: false  
+    // If payment method is Razorpay
+    if (paymentMethod === 'Razorpay') {
+        fetch('/createOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                selectedAddressId: selectedAddress,
+                amount: 50000
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const options = {
+                    key: data.key_id,
+                    amount: data.amount,
+                    currency: "INR",
+                    name: "Your Store Name",
+                    description: "Purchase Description",
+                    order_id: data.order_id, 
+                    handler: function(response) {
+                        // After successful payment verification
+                        fetch('/verifyPayment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(response)
+                        })
+                        .then(res => res.json())
+                        .then(verification => {
+                            if (verification.success) {
+                                // After verification success, add order to database
+                                fetch('/addToOrder', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        selectedAddressId: selectedAddress,
+                                        paymentMethod: paymentMethod,
+                                        couponApplied: false 
+                                    })
+                                })
+                                .then(orderResponse => orderResponse.json())
+                                .then(orderData => {
+                                    if (orderData.success) {
+                                        Swal.fire({
+                                            title: 'Order Placed Successfully!',
+                                            text: 'Thank you for your purchase. Your order has been placed.',
+                                            icon: 'success',
+                                            confirmButtonText: 'Go to Orders'
+                                        }).then(() => {
+                                            window.location.href = "/order";
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            title: 'Order Placement Failed',
+                                            text: orderData.message || 'There was an issue placing your order. Please try again.',
+                                            icon: 'error',
+                                            confirmButtonText: 'OK'
+                                        });
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Payment Verification Failed',
+                                    text: verification.message || 'Please contact support.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        });
+                    },
+                    prefill: {
+                        name: "Customer Name",
+                        email: "customer@example.com",
+                        contact: "9999999999"
+                    },
+                    theme: {
+                        color: "#3399cc"
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message || 'Failed to initiate Razorpay order.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
             Swal.fire({
-                title: 'Order Placed Successfully!',
-                text: 'Thank you for your purchase. Your order has been placed.',
-                icon: 'success',
-                confirmButtonText: 'Go to Orders'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = "/order";
-                }
-            });
-        } else {
-            Swal.fire({
-                title: 'Order Failed',
-                text: data.message || 'There was an issue placing your order. Please try again.',
+                title: 'Error',
+                text: 'Unable to create Razorpay order. Please try again later.',
                 icon: 'error',
                 confirmButtonText: 'OK'
             });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            title: 'Order Failed',
-            text: 'An unexpected error occurred. Please try again later.',
-            icon: 'error',
-            confirmButtonText: 'OK'
         });
-    });
+    } else {
+        // Other payment methods
+        fetch('/addToOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                selectedAddressId: selectedAddress,
+                paymentMethod: paymentMethod,
+                couponApplied: false
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Order Placed Successfully!',
+                    text: 'Thank you for your purchase. Your order has been placed.',
+                    icon: 'success',
+                    confirmButtonText: 'Go to Orders'
+                }).then(() => {
+                    window.location.href = "/order";
+                });
+            } else {
+                Swal.fire({
+                    title: 'Order Failed',
+                    text: data.message || 'There was an issue placing your order. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Order Failed',
+                text: 'An unexpected error occurred. Please try again later.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
 });
+
 
 </script>
 

@@ -1,0 +1,170 @@
+<%- include("../../views/partials/admin/header") %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header text-white">
+            <h2 class="content-title">Add Coupons</h2>
+        </div>
+        <div class="card-body">
+            <form id="couponForm">
+                <div id="couponContainer">
+                    <div class="coupon-fields">
+                        <h4 class="text-secondary">Coupon #1</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <input type="text" id="code1" name="coupons[0][code]" class="form-control" placeholder="Enter coupon code" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <select id="paymentType1" name="coupons[0][paymentType]" class="form-control" required>
+                                    
+                                    <option value="fixed">Amount</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <input type="number" id="amount1" name="coupons[0][amount]" class="form-control" placeholder="Enter coupon amount" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <textarea id="description1" name="coupons[0][description]" class="form-control" placeholder="Enter description" required></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <input type="number" id="totalLimit1" name="coupons[0][totalLimit]" class="form-control" placeholder="Enter total usage limit" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <input type="number" id="perUserLimit1" name="coupons[0][perUserLimit]" class="form-control" placeholder="Enter per user limit" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <input type="number" id="minPurchase1" name="coupons[0][minPurchase]" class="form-control" placeholder="Enter minimum purchase amount" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <input type="number" id="maxDiscount1" name="coupons[0][maxDiscount]" class="form-control" placeholder="Enter maximum discount (optional)">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <input type="date" id="expiryDate1" name="coupons[0][expiryDate]" class="form-control" required>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    
+                    <button type="submit" class="btn btn-primary" id="submitCoupons">Submit Coupons</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    document.getElementById('couponForm').addEventListener('submit', function (e) {
+    e.preventDefault(); 
+
+    const couponsData = [];
+    const couponFields = document.querySelectorAll('.coupon-fields');
+    let isValid = true;
+
+    const errorMessages = document.querySelectorAll('.error-message');
+    errorMessages.forEach(error => error.remove());
+
+    couponFields.forEach((couponField, index) => {
+        const coupon = {
+            code: couponField.querySelector(`#code${index + 1}`).value.trim(), 
+            paymentType: couponField.querySelector(`#paymentType${index + 1}`).value,
+            amount: couponField.querySelector(`#amount${index + 1}`).value,
+            description: couponField.querySelector(`#description${index + 1}`).value.trim(),
+            totalLimit: couponField.querySelector(`#totalLimit${index + 1}`).value,
+            perUserLimit: couponField.querySelector(`#perUserLimit${index + 1}`).value,
+            minPurchase: couponField.querySelector(`#minPurchase${index + 1}`).value,
+            maxDiscount: couponField.querySelector(`#maxDiscount${index + 1}`).value,
+            expiryDate: couponField.querySelector(`#expiryDate${index + 1}`).value
+        };
+
+        if (!coupon.code) {
+            showError(couponField.querySelector(`#code${index + 1}`), 'Coupon Code is required!');
+            isValid = false;
+        }
+
+        if (isNaN(coupon.amount) || coupon.amount <= 0) {
+            showError(couponField.querySelector(`#amount${index + 1}`), 'Coupon Amount should be a valid number!');
+            isValid = false;
+        }
+
+        if (!coupon.description) {
+            showError(couponField.querySelector(`#description${index + 1}`), 'Description is required!');
+            isValid = false;
+        }
+
+        if (!coupon.expiryDate) {
+            showError(couponField.querySelector(`#expiryDate${index + 1}`), 'Expiry Date is required!');
+            isValid = false;
+        }
+
+        if (isValid) {
+            couponsData.push(coupon);
+        }
+    });
+
+    if (isValid) {
+       
+        fetch('/admin/addCoupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ coupons: couponsData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+               
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Coupon Added Successfully!',
+                    text: 'Your coupon has been added.',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            } else {
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: data.message || 'An error occurred while adding the coupon.',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Network Error!',
+                text: 'Something went wrong. Please try again later.',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        });
+    }
+});
+
+function showError(inputElement, message) {
+
+    const errorMessage = document.createElement('div');
+    errorMessage.classList.add('error-message', 'text-danger');
+    errorMessage.textContent = message;
+    inputElement.classList.add('is-invalid'); 
+    inputElement.parentNode.appendChild(errorMessage);
+
+}
+
+</script>

@@ -48,13 +48,8 @@ const productSchema= new Schema({
     isBlocked:{
         type:Boolean,
         default:false
-    },
-    status:{
-        type:String,
-        enum:['Available','out of stock','Discontinued'],
-        required:true,
-        default:"Available",
     }
+   
 },{timestamps:true});
 const Product= mongoose.model('Product',productSchema);
 module .exports=Product;

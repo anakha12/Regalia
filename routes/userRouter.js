@@ -7,7 +7,9 @@ const orderController= require('../controllers/user/orderController');
 const cartController= require('../controllers/user/cartController');
 const wishlistController= require('../controllers/user/wishlistController');
 const walletController= require('../controllers/user/walletController');
+const couponController=require('../controllers/user/couponController')
 const passport = require('passport');
+const crypto = require('crypto');
 const {userAuth,adminAuth}=require('../middlewares/auth');
 
 router.get('/pageNotFound',userController.pageNotFound);
@@ -61,6 +63,7 @@ router.post('/addAddressCart',userAuth,profileController.addAddressPostCart);
 router.post('/addToOrder',userAuth,orderController.addToOrder)
 router.get('/order',userAuth,orderController.getOrders);
 router.post('/orders/cancel',orderController.cancelOrder);
+router.post('/orders/return',orderController.returnOrder);
 router.get('/filterShop',userController.shop);
 router.get('/search', userController.searchProducts);
 
@@ -73,7 +76,12 @@ router.get('/wishlist/remove/:productId', wishlistController.removeFromWishlist)
 
 
 router.get('/wallet', userAuth, walletController.getWallet);
-router.post("/wallet/add-money",userAuth,walletController.addMoneyToWallet)
+router.post("/wallet/add-money",userAuth,walletController.addMoneyToWallet);
+router.post('/createOrder',orderController.razorpayCrate)
+router.post('/verifyPayment',orderController.verifyPayment)
+
+router.get('/getCoupons', userAuth,couponController.getAllCoupon)
+
 
 router.get('/auth/google/callback', 
     passport.authenticate('google', { failureRedirect: '/signup' }), 

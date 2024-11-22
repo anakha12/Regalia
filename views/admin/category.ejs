@@ -276,47 +276,70 @@
     }
 
     function addOffer(categoryId) {
-      Swal.fire({
-        title: 'Enter the offer percentage:',
-        input: 'number',
-        inputAttributes: {
-          min: 1,
-          max: 100,
-          step: 1
-        },
-        showCancelButton: true,
-        confirmButtonText: 'Submit',
-        preConfirm: (percentage) => {
-          fetch(`/admin/addCategoryOffer`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ percentage: percentage ,categoryId:categoryId})
-          })
-          .then(response =>response.json().then(data=> {
-            if (!response.ok) { 
-              throw new Error(data.message || 'An error occurred');
-            }
-            return data;
-          }))
-          .then(data => {
-            Swal.fire({
-              icon: 'success',
-              title: 'Success!',
-              text: 'Offer added successfully.'
-            }).then(() => {
-              location.reload();
-            });
-          })
-          .catch(error => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: error.message
-            });
-          });
-        }
+  Swal.fire({
+    title: 'Enter Offer Details:',
+    html: `
+      <label for="percentage" style="display: block; text-align: left; margin-bottom: 5px;">Offer Percentage:</label>
+      <input id="percentage" type="number" class="swal2-input" placeholder="Enter percentage" min="1" max="100" step="1">
+      <label for="maxDiscount" style="display: block; text-align: left; margin-bottom: 5px;">Max Discount:</label>
+      <input id="maxDiscount" type="number" class="swal2-input" placeholder="Enter max discount" min="1" step="1">
+    `,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'Submit',
+    preConfirm: () => {
+      const percentage = document.getElementById('percentage').value;
+      const maxDiscount = document.getElementById('maxDiscount').value;
+
+      if (!percentage || percentage < 1 || percentage > 100) {
+        Swal.showValidationMessage('Please enter a valid offer percentage (1-100).');
+        return false;
+      }
+
+      if (!maxDiscount || maxDiscount < 1) {
+        Swal.showValidationMessage('Please enter a valid max discount.');
+        return false;
+      }
+
+      return { percentage: parseInt(percentage), maxDiscount: parseInt(maxDiscount) };
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const { percentage, maxDiscount } = result.value;
+
+      fetch(`/admin/addCategoryOffer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ percentage, maxDiscount, categoryId })
+      })
+      .then(response =>
+        response.json().then(data => {
+          if (!response.ok) {
+            throw new Error(data.message || 'An error occurred');
+          }
+          return data;
+        })
+      )
+      .then(data => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Offer added successfully.'
+        }).then(() => {
+          location.reload();
+        });
+      })
+      .catch(error => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message
+        });
       });
     }
+  });
+}
+
 
     function removeOffer(categoryId) {
       Swal.fire({

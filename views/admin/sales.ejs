@@ -1,13 +1,5 @@
 <%- include("../../views/partials/admin/header") %>
-    <style>
-        .report-container {
-            margin: 20px auto;
-            max-width: 1200px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+<style>
         .filter-section {
             display: flex;
             justify-content: space-between;
@@ -38,15 +30,15 @@
         background-color: #f9f9f9;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    @media print {
-    .report-container {
-        margin: 0;
-        box-shadow: none;
-    }
-}
+        }
+        @media print {
+         .report-container {
+            margin: 0;
+            box-shadow: none;
+          }
+        }
 
-    </style>
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <div class="d-flex justify-content-end mb-4">
@@ -60,13 +52,10 @@
       </select>
       <button type="submit" class="btn btn-primary">Filter</button>
     </form>
-    
-    
 </div>
 <div class="container my-4" id="salesReport">
     <h1 class="text-center">Sales Report</h1>
 
-  
     <!-- Summary Section -->
     <div class="row g-3">
         <div class="col-md-6">
@@ -87,8 +76,7 @@
           </div>
         </div>
       </div>
-      
-  
+
     <!-- Payment Method Usage -->
     <div class="row g-3 mt-4">
       <div class="col-md-6">
@@ -125,50 +113,40 @@
               </tr>
             <% }) %>
           </tbody>
-          
       </table>
-      
     </div>
-  
   </div>
   <button id="downloadPdf" class="btn btn-primary ms-2">Download PDF</button>
   
 
   <script>
+
     document.getElementById('downloadPdf').addEventListener('click', async function () {
       try {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'px',
-          format: 'a4',
+          format: 'a4', 
         });
   
-        // Select the sales report element
         const salesReportElement = document.getElementById('salesReport');
-  
-        // Generate the canvas
         const canvas = await html2canvas(salesReportElement, {
-          scale: 2, // Improves the quality
+          scale: 2, 
         });
-  
-        // Get the content as an image
+
         const imgData = canvas.toDataURL('image/png');
-  
-        // Calculate the dimensions for PDF
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-  
-        // Add the image to the PDF
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-  
-        // Save the PDF
         pdf.save('Sales_Report.pdf');
+
       } catch (error) {
         console.error('Error generating PDF:', error);
         alert('An error occurred while generating the PDF. Please try again.');
       }
     });
+
   </script>
   
   

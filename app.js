@@ -9,6 +9,7 @@ const userRouter= require('./routes/userRouter');
 const req = require('express/lib/request');
 const flash = require('connect-flash');
 const adminRouter=require('./routes/adminRouter');
+const Razorpay = require("razorpay");
 
 db();
 
@@ -31,7 +32,10 @@ app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session())
 
-
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
 
 app.use((req,res,next)=>{
     res.set('cache-control','no-store');

@@ -20,6 +20,11 @@ const orderSchema= new mongoose.Schema({
               ref: "Product",
               required: true
             },
+            status: {
+              type: String,
+              required: true,
+              enum: ['Pending','Processing', 'Placed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled','Returned']
+          },
             quantity: {
               type: Number,
               required: true
@@ -54,6 +59,11 @@ const orderSchema= new mongoose.Schema({
         paymentMethod: {
         type: String,
         required: true
+        },
+        paymentStatus:{
+          type: String,
+          required:true,
+          enum:['Pending',"Success","Failed"]
         },
         discount:{
             type:Number,

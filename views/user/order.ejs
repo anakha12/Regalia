@@ -13,6 +13,15 @@
             <p>Total Price: $<%= order.totalPrice.toFixed(2) %></p>
             <p>Discount Applied: <%= order.discount %>%</p>
             <p>Final Amount: $<%= order.finalAmount.toFixed(2) %></p>
+
+            <!-- Overall order status -->
+            <p class="overall-status">
+              Overall Status: 
+              <% let statuses = order.Ordereditems.map(item => item.status); %>
+              <% let priority = { 'Pending': 1, 'Placed': 2, 'Processing': 3, 'Shipped': 4, 'Out for Delivery': 5, 'Delivered': 6, 'Cancelled': 0 }; %>
+              <% let maxStatus = statuses.reduce((max, status) => priority[status] > priority[max] ? status : max, statuses[0]); %>
+              <span class="status-<%= maxStatus.toLowerCase().replace(/\s+/g, '-') %>"><%= maxStatus %></span>
+            </p>
           </div>
 
           <div class="ordered-items">
@@ -20,12 +29,12 @@
               <div class="item-card">
                 <!-- Display product image and name -->
                 <div class="product-info">
-                  <% if (item.product && item.product.productImage && item.product.productImage.length > 0) { %>
-                    <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt="<%= item.product.productName %>" class="product-image">
+                  <% if (item.images && item.images && item.images.length > 0) { %>
+                    <img src="/uploads/product-images/<%= item.images[0] %>" alt="<%= item.name %>" class="product-image">
                   <% } else { %>
                     <img src="/images/default-product.jpg" alt="Default Image" class="product-image">
                   <% } %>
-                  <h3><%= item.product.productName || 'Product Name Unavailable' %></h3>
+                  <h3><%= item.name || 'Product Name Unavailable' %></h3>
                 </div>
                 
                 <p>Quantity: <%= item.quantity %></p>
@@ -33,35 +42,22 @@
                 <p>Total Price: $<%= item.totalPrice.toFixed(2) %></p>
                 <p>Discount Price: $<%= item.discountPrice.toFixed(2) %></p>
                 
-                <!-- Show individual product status -->
+                <!-- Individual product status -->
                 <p class="product-status">
                   Status: 
-                  <% if (order.status === 'Pending') { %>
-                    <span class="status-pending">Pending</span>
-                  <% } else if (order.status === 'Placed') { %>
-                    <span class="status-placed">Placed</span>
-                  <% } else if (order.status === 'Processing') { %>
-                    <span class="status-processing">Processing</span>
-                  <% } else if (order.status === 'Shipped') { %>
-                    <span class="status-shipped">Shipped</span>
-                  <% } else if (order.status === 'Out for Delivery') { %>
-                    <span class="status-out-for-delivery">Out for Delivery</span>
-                  <% } else if (order.status === 'Delivered') { %>
-                    <span class="status-delivered">Delivered</span>
-                  <% } else if (order.status === 'Cancelled') { %>
-                    <span class="status-cancelled">Cancelled</span>
-                  <% } else { %>
-                    <span class="status-default">Unknown</span>
-                  <% } %>
+                  <span class="status-<%= item.status.toLowerCase().replace(/\s+/g, '-') %>"><%= item.status %></span>
                 </p>
-                
 
                 <p>
-                  <% if (order.status === 'Pending' || order.status === 'Processing'||order.status === 'Shipped'||order.status === 'Out for Delivery'||order.status === 'Placed') { %>
-                    <button onclick="cancelOrder('<%= order._id %>', '<%= item.product._id %>')">Cancel</button>
-                  <% } else { %>
-                    <span>Not Cancelable</span>
+                  <% if (['Pending', 'Processing', 'Placed', 'Shipped', 'Out for Delivery'].includes(item.status)) { %>
+                    <button class="cancel-button" onclick="cancelOrder('<%= order._id %>', '<%= item.product._id %>')">
+                      Cancel
+                  </button>
+                  <% } else if(['Delivered'].includes(item.status)){ %>
+                    <button class="return-button" onclick="returnOrder('<%= order._id %>', '<%= item.product._id %>')">Return</button>
+                 
                   <% } %>
+                  
                 </p>
               </div>
             <% }) %>
@@ -77,36 +73,74 @@
 <%- include("../../views/partials/user/footer") %>
 
 <script>
-    async function cancelOrder(orderId, productId) {
-      if (confirm("Are you sure you want to cancel this item?")) {
-        try {
-          const response = await fetch(`/orders/cancel`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ orderId, productId })
-          });
-          const result = await response.json();
-          if (result.success) {
-            alert("Item canceled successfully.");
-            location.reload();
-          } else {
-            alert(result.message || "Failed to cancel item.");
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("An error occurred while canceling the item.");
+function cancelOrder(orderId, productId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will cancel the order.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, cancel it!',
+        cancelButtonText: 'No, keep it'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/orders/cancel',
+                method: 'POST',
+                data: { orderId: orderId, productId: productId },
+                success: (response) => {
+                    if (response.success) {
+                        Swal.fire('Cancelled', response.message, 'success');
+                        location.reload(); 
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: (jqXHR) => {
+                    const message = jqXHR.responseJSON?.message || 'Failed to cancel the order';
+                    Swal.fire('Error', message, 'error');
+                }
+            });
         }
-      }
-    }
+    });
+}
+
+function returnOrder(orderId, productId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will Return the order.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Return it!',
+        cancelButtonText: 'No, keep it'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/orders/return',
+                method: 'POST',
+                data: { orderId: orderId, productId: productId },
+                success: (response) => {
+                    if (response.success) {
+                        Swal.fire('Returned', response.message, 'success');
+                        location.reload(); 
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: (jqXHR) => {
+                    const message = jqXHR.responseJSON?.message || 'Failed to return the order';
+                    Swal.fire('Error', message, 'error');
+                }
+            });
+        }
+    });
+}
 </script>
 
 <style>
   .order-card {
     border: 1px solid #ccc;
     padding: 20px;
-    border-radius: 8px;
+   
     margin-bottom: 20px;
     background-color: #f9f9f9;
   }
@@ -116,9 +150,30 @@
   }
 
   .order-id {
-    font-size: 0.85em; /* Reduce the font size of the order ID */
+    font-size: 0.85em;
     color: #555;
   }
+  .cancel-button {
+    background-color: #111111; 
+    color: white; 
+    border: none;
+    padding: 2px 10px;
+    
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.return-button {
+    background-color: #111111; 
+    color: white; 
+    border: none;
+    padding: 2px 10px;
+    
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
 
   .ordered-items {
     display: flex;
@@ -129,7 +184,7 @@
     border: 1px solid #ddd;
     padding: 10px;
     margin: 10px;
-    border-radius: 8px;
+
     background-color: #fff;
     flex: 1 1 calc(50% - 20px);
     max-width: 300px;
@@ -154,51 +209,48 @@
     font-size: 1.1em;
   }
 
-  button {
-    padding: 5px 10px;
-    color: #fff;
-    background-color: #f44336;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background-color: #d32f2f;
-  }
-
-  .product-status span {
+  .product-status span,
+  .overall-status span {
     font-weight: bold;
     padding: 3px 6px;
-    border-radius: 5px;
+   
   }
 
   .status-pending {
-    background-color: #f4a261;
+    background-color: #e6ccb7;
     color: #fff;
   }
 
   .status-processing {
-    background-color: #2a9d8f;
+    background-color: #b0f1ea;
     color: #fff;
   }
 
   .status-shipped {
-    background-color: #264653;
+    background-color: #8fd7f3;
+    color: #fff;
+  }
+  .status-returned {
+    background-color: #9c567f;
+    color: #fff;
+  }
+  .status-delivered {
+    background-color: #6dbd8b;
     color: #fff;
   }
 
-  .status-delivered {
-    background-color: #e9c46a;
-    color: #fff;
-  }
   .status-placed {
-    background-color: #9cbcd8; 
+    background-color: #b9dcfc; 
     color: #fff;
   }
 
   .status-out-for-delivery {
-    background-color: #007bff;
+    background-color: #535a63;
+    color: #fff;
+  }
+
+  .status-cancelled {
+    background-color: #8a1007;
     color: #fff;
   }
 
