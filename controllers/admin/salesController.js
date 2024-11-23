@@ -29,7 +29,12 @@ const getSales = async (req, res) => {
           break;
       }
   
-      const orders = await Order.find({ createdOn: { $gte: startDate } }).populate('userId'); // Ensure `userId` is populated
+      const orders = await Order.find({ 
+        createdOn: { $gte: startDate },
+        paymentStatus: 'Success',
+        'Ordereditems.status': { $ne: 'Returned' },
+    }).populate('userId');
+
   
       const totalOrders = orders.length;
       const totalRevenue = orders.reduce((sum, order) => sum + order.totalPrice, 0);
@@ -40,7 +45,7 @@ const getSales = async (req, res) => {
         counts[order.status] = (counts[order.status] || 0) + 1;
         return counts;
       }, {});
- 
+      
       const paymentMethods = orders.reduce((counts, order) => {
         counts[order.paymentMethod] = (counts[order.paymentMethod] || 0) + 1;
         return counts;
@@ -56,7 +61,7 @@ const getSales = async (req, res) => {
         statusCounts,
         paymentMethods,
         orders,
-        moment, // Pass moment to the EJS template
+        moment, 
       });
     } catch (error) {
       console.error('Error in getSales controller:', error);
