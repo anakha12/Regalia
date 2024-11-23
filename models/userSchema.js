@@ -35,7 +35,20 @@ const userSchema= new mongoose.Schema({
     isAdmin:{
         type:Boolean,
         default:false,
-    }
+    },
+    couponApplied: [
+        {
+          couponId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Coupon',
+            
+          },
+          usedCount:{
+            type:Number
+            
+          }
+        },
+      ],
 },{timestamps:true})
 
 const User=mongoose.model("User2",userSchema);

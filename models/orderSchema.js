@@ -97,8 +97,10 @@ const orderSchema= new mongoose.Schema({
 
         },
         couponApplied:{
-            type:Boolean,
-            default:false
+          type:Schema.Types.ObjectId,
+          ref: "Coupon",
+          required:true
+
         }
   
 })

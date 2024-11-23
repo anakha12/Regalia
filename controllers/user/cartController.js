@@ -3,7 +3,7 @@ const Address = require('../../models/addressSchema');
 const Product = require('../../models/productSchema');
 const Cart = require('../../models/cartSchema');
 const session = require('express-session');
-
+const Coupon = require("../../models/couponSchema");
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 
@@ -163,7 +163,7 @@ const changeQuantity = async (req, res) => {
 const Checkout = async (req, res) => {
     try {
         const userId = req.session.user; 
-
+        const coupons =await Coupon.find();
         
         const cart = await Cart.findOne({ userId: userId }).populate('items.productId'); 
 
@@ -172,15 +172,15 @@ const Checkout = async (req, res) => {
         }
 
         const user = await User.findById(userId); 
-        const addressData = await Address.findOne({ userId }).lean(); // Use `lean` for a plain object 
+        const addressData = await Address.findOne({ userId }).lean(); 
      
         res.render('checkout', {
             user,
             cartItems: cart.items,
             userAddresses: addressData ? addressData.address : [],
             subtotal: cart.items.reduce((total, item) => total + item.totalPrice, 0), 
-            cartTotal: cart.items.reduce((total, item) => total + item.totalPrice, 0)
-            
+            cartTotal: cart.items.reduce((total, item) => total + item.totalPrice, 0),
+            coupons
         });
     } catch (error) {
         console.error('Error fetching cart or user data:', error);

@@ -50,39 +50,35 @@ router.get('/addAddress',userAuth,profileController.addAddress);
 router.post('/addAddress',userAuth,profileController.addAddressPost);
 router.get('/editAddress',userAuth,profileController.editAddress);
 router.post('/editAddress',userAuth,profileController.editAddressPost);
-router.get('/deleteAddress',userAuth,profileController.deleteAddress)
+router.get('/deleteAddress',userAuth,profileController.deleteAddress);
 
-router.post('/addToCart',userAuth,cartController.addToCart)
-router.get('/cart',userAuth,cartController.getCart)
+router.post('/addToCart',userAuth,cartController.addToCart);
+router.get('/cart',userAuth,cartController.getCart);
 router.get('/cart/remove/:productId', cartController.removeFromCart);
-router.post('/cart/update-quantity/:productId',cartController.changeQuantity)
-router.get('/checkout',userAuth,cartController.Checkout)
+router.post('/cart/update-quantity/:productId',cartController.changeQuantity);
+router.get('/checkout',userAuth,cartController.Checkout);
 router.get('/addAddressCart',userAuth,profileController.addAddressCart);
 router.post('/addAddressCart',userAuth,profileController.addAddressPostCart);
 
-router.post('/addToOrder',userAuth,orderController.addToOrder)
+router.post('/addToOrder',userAuth,orderController.addToOrder);
 router.get('/order',userAuth,orderController.getOrders);
 router.post('/orders/cancel',orderController.cancelOrder);
 router.post('/orders/return',orderController.returnOrder);
 router.get('/filterShop',userController.shop);
 router.get('/search', userController.searchProducts);
 
-
-
-
 router.post('/addToWishlist',userAuth,wishlistController.addToWishlist);
-router.get('/wishlist',userAuth,wishlistController.getWishlist)
+router.get('/wishlist',userAuth,wishlistController.getWishlist);
 router.get('/wishlist/remove/:productId', wishlistController.removeFromWishlist);
-
 
 router.get('/wallet', userAuth, walletController.getWallet);
 router.post("/wallet/add-money",userAuth,walletController.addMoneyToWallet);
-router.post('/createOrder',orderController.razorpayCrate)
-router.post('/verifyPayment',orderController.verifyPayment)
+router.post('/createOrder',orderController.razorpayCrate);
+router.post('/verifyPayment',orderController.verifyPayment);
 
-router.get('/getCoupons', userAuth,couponController.getAllCoupon)
-
-
+router.get('/fetchCoupons', userAuth,couponController.getAllCoupon);
+router.post('/applyCoupon',userAuth,couponController.applyCoupon)
+router.post('/removeCoupon',userAuth,couponController.removeCoupon)
 router.get('/auth/google/callback', 
     passport.authenticate('google', { failureRedirect: '/signup' }), 
     (req, res) => {

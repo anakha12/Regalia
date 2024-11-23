@@ -7,6 +7,7 @@ const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 const User = require('../../models/userSchema');
 const Wallet = require('../../models/walletSchema');
+const Coupon = require("../../models/couponSchema");
 const env = require('dotenv').config();
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
@@ -18,6 +19,19 @@ const addToOrder = async (req, res) => {
     const userId = req.session.user;
     
     const { selectedAddressId, paymentMethod, couponApplied } = req.body;
+   
+    let couponId = null;
+    let couponAmount = null;
+        if (couponApplied) {
+            const coupon = await Coupon.findOne({ couponCode: couponApplied.toUpperCase(), isActive: true });
+            if (coupon) {
+                couponId = coupon._id;
+                couponAmount = coupon.couponAmount; 
+            } else {
+                return res.status(400).json({ error: 'Invalid or inactive coupon code' });
+            }
+        }
+  
 
     const cart = await Cart.findOne({ userId }).populate('items.productId');
     if (!cart || cart.items.length === 0) {
@@ -103,7 +117,9 @@ const addToOrder = async (req, res) => {
       });
       await wallet.save();
     }
-
+    if(couponAmount){
+      totalPrice=totalPrice-couponAmount;
+    }
     const newOrder = new Order({
       Ordereditems: orderedItems,
       totalPrice,
@@ -114,7 +130,7 @@ const addToOrder = async (req, res) => {
       paymentStatus,
       invoiceDate: new Date(),
       status: 'Pending',
-      couponApplied,
+      couponApplied:couponId,
       userId,
     });
 

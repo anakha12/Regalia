@@ -61,7 +61,7 @@
                         </tbody>
                     </table>
                 </div>
-
+                <input type="hidden" id="cartTotal" value="<%= cartTotal %>">
                 <h6 class="checkout__title">Billing Details</h6>
                 <% if (userAddresses && userAddresses.length > 0) { %>
                     <p>Your Addresses:</p>
@@ -115,7 +115,6 @@
             </div>
 
             <!-- Right Column: Cart Summary and Payment -->
-            <!-- Right Column: Cart Summary and Payment -->
 <div class="col-lg-4 col-md-12" style="position: sticky; top: 0; height: 100vh;">
     <div class="checkout__order">
         <h4 class="order__title">Your Order Summary</h4>
@@ -130,15 +129,56 @@
             <li>Total <span>$<%= cartTotal.toFixed(2) %></span></li>
         </ul>
 
-        <!-- Coupon Discount -->
-        <div class="cart__discount" style="margin: 20px 0;">
-            <h6>Discount Codes</h6>
-            <form action="#">
-                <input type="text" placeholder="Coupon code" style="width: 70%; margin-right: 10px;">
-                <button type="submit" style="padding: 5px 10px;">Apply</button>
-            </form>
-        </div>
+       <!-- Coupon Discount -->
+<div class="cart__discount" style="margin: 20px 0; display: flex; align-items: center;">
 
+    <input type="text" id="couponCode" placeholder="Coupon code" style="width: 60%; padding: 8px; border: 1px solid #ddd; margin-right: 10px;">
+    <button type="button" id="selectCoupon" style="padding: 10px 20px; background: #0f0f0f; color: #fff; border: none;  cursor: pointer;">
+        Coupons
+    </button>
+    <button type="button" id="applyCoupon" style="padding: 10px 20px; background: #070707; color: #fff; border: none;  cursor: pointer; margin-left: 10px;">
+        Apply
+    </button>
+</div>
+
+<!-- Modal for Coupons -->
+<div id="couponModal" style="
+    display: none; 
+    position: fixed; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    z-index: 1000; 
+    background: #fff; 
+    padding: 20px; 
+    border-radius: 10px; 
+    width: 400px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+    <h4 style="margin-bottom: 20px; color: #333; text-align: center;">Select a Coupon</h4>
+    <div id="couponList" style="margin-bottom: 20px; max-height: 200px; overflow-y: auto;">
+        <!-- Coupons will be dynamically added here -->
+    </div>
+    <div style="text-align: center;">
+        <button id="closeCouponModal" style="padding: 10px 20px; background: #080808; color: #fff; border: none; cursor: pointer;">
+            Close
+        </button>
+    </div>
+</div>
+
+<!-- Overlay for Modal -->
+<div id="modalOverlay" style="
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.5); 
+    z-index: 999;">
+</div>
+
+
+        
         <div class="checkout__input__checkbox">
             <label for="payment">
                 Cash on delivery
@@ -174,7 +214,7 @@
 <script>
   document.getElementById('proceedToPay').addEventListener('click', function(event) {
     event.preventDefault();
-
+    const couponCode = document.getElementById('couponCode').value.trim();
     const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked').value;
     const paymentMethod = document.querySelector('input[id="payment"]').checked ? 'Cash on Delivery' : 
                           document.querySelector('input[id="wallet"]').checked ? 'Wallet' : 
@@ -231,7 +271,7 @@
                                     body: JSON.stringify({
                                         selectedAddressId: selectedAddress,
                                         paymentMethod: paymentMethod,
-                                        couponApplied: false 
+                                        couponApplied: couponCode, 
                                     })
                                 })
                                 .then(orderResponse => orderResponse.json())
@@ -304,7 +344,7 @@
             body: JSON.stringify({
                 selectedAddressId: selectedAddress,
                 paymentMethod: paymentMethod,
-                couponApplied: false
+                couponApplied: couponCode,
             })
         })
         .then(response => response.json())
@@ -338,6 +378,124 @@
         });
     }
 });
+
+document.getElementById('selectCoupon').addEventListener('click', async () => {
+    const couponModal = document.getElementById('couponModal');
+    const couponList = document.getElementById('couponList');
+    
+    // Show modal
+    couponModal.style.display = 'block';
+
+    // Fetch coupons from backend
+    try {
+        const response = await fetch('/fetchCoupons');
+        const data = await response.json();
+
+        if (data.success) {
+            // Populate the modal with coupons
+            couponList.innerHTML = data.coupons.map(coupon => `
+                <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
+                    <input type="radio" name="coupon" value="${coupon.couponCode}" id="coupon-${coupon.couponCode}" style="
+                        margin-right: 10px; 
+                        transform: scale(0.8); /* Scale the radio button */
+                        width: 14px; /* Adjust width */
+                        height: 14px; /* Adjust height */
+                    ">
+                    <strong>${coupon.couponCode}</strong> - ${coupon.description}
+                </label>
+            `).join('');
+        } else {
+            couponList.innerHTML = '<p>No coupons available.</p>';
+        }
+    } catch (error) {
+        console.error('Failed to fetch coupons:', error);
+        couponList.innerHTML = '<p>Error loading coupons.</p>';
+    }
+});
+
+document.getElementById('closeCouponModal').addEventListener('click', () => {
+    document.getElementById('couponModal').style.display = 'none';
+});
+
+document.getElementById('couponList').addEventListener('change', (event) => {
+    if (event.target.name === 'coupon') {
+        const selectedCoupon = event.target.value;
+        document.getElementById('couponCode').value = selectedCoupon;
+        document.getElementById('couponModal').style.display = 'none';
+    }
+});
+
+document.getElementById('applyCoupon').addEventListener('click', async () => {
+    const totalPrice = parseFloat(document.getElementById('cartTotal').value || 0);
+    const couponCode = document.getElementById('couponCode').value.trim();
+
+    if (!couponCode) {
+        Swal.fire('Error', 'Please enter or select a coupon code.', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/applyCoupon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ couponCode, totalPrice })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            Swal.fire('Success', `Coupon applied: ${couponCode}`, 'success');
+
+            // Update the Subtotal and Total UI
+            const totalElement = document.querySelector('.checkout__total__all li:nth-child(2) span'); // Total element
+            const subtotalElement = document.querySelector('.checkout__total__all li:nth-child(1) span'); // Subtotal element
+            
+            totalElement.textContent = `$${data.discountedPrice}`;
+            subtotalElement.textContent = `$${totalPrice.toFixed(2)}`;
+
+            document.getElementById('cartTotal').value = data.discountedPrice;
+
+            // Change the Apply button to Remove button
+            document.getElementById('applyCoupon').textContent = 'Remove Coupon';
+            document.getElementById('applyCoupon').id = 'removeCoupon'; // Change the ID for future reference
+
+            // Optionally hide the coupon code field and select coupon button if needed
+            document.getElementById('couponCode').style.display = 'none';
+            document.getElementById('selectCoupon').style.display = 'none';
+
+            // Add event listener to the Remove button
+            document.getElementById('removeCoupon').addEventListener('click', async () => {
+                try {
+                    const removeResponse = await fetch('/removeCoupon', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ couponCode, totalPrice })
+                    });
+
+                    const removeData = await removeResponse.json();
+
+                    if (removeData.success) {
+                        Swal.fire('Success', 'Coupon removed successfully.', 'success');
+
+                        // Revert UI to the original state
+                        location.reload(); // Reload the page to reflect the changes
+                    } else {
+                        Swal.fire('Error', removeData.message || 'Failed to remove the coupon.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error removing coupon:', error);
+                    Swal.fire('Error', 'Failed to remove the coupon.', 'error');
+                }
+            });
+        } else {
+            Swal.fire('Error', data.message || 'Invalid coupon.', 'error');
+        }
+    } catch (error) {
+        console.error('Error applying coupon:', error);
+        Swal.fire('Error', 'Failed to apply the coupon.', 'error');
+    }
+});
+
 
 
 </script>
