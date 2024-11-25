@@ -99,7 +99,7 @@ const orderSchema= new mongoose.Schema({
         couponApplied:{
           type:Schema.Types.ObjectId,
           ref: "Coupon",
-          required:true
+         
 
         }
   

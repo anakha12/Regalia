@@ -87,11 +87,16 @@ const loadShopDetails = async (req, res) => {
 const shop = async (req, res) => {
    
     try {
-        const { category } = req.query; 
+        const { category, minPrice, maxPrice } = req.query; 
         console.log( req.query)
         let filter = {};
         if (category) {
             filter.category = category; 
+        }
+        if (minPrice || maxPrice) {
+            filter.salePrice = {};
+            if (minPrice) filter.salePrice.$gte = parseFloat(minPrice);
+            if (maxPrice) filter.salePrice.$lte = parseFloat(maxPrice); 
         }
 
         const categories = await Category.find();
@@ -108,6 +113,7 @@ const shop = async (req, res) => {
 };
 const searchProducts = async (req, res) => {
     const searchQuery = req.query.q || ""; 
+   
 
     try {
         

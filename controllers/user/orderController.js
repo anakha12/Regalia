@@ -59,6 +59,7 @@ const addToOrder = async (req, res) => {
 
     let totalPrice = 0;
     let finalAmount=0;
+    // let discountPrice =0 
     const orderedItems = [];
 
     for (const item of cart.items) {
@@ -66,8 +67,8 @@ const addToOrder = async (req, res) => {
       const price = productId.salePrice*quantity;
       const name = productId.productName;
       const images = productId.productImage;
-      const discountPrice = productId.regularPrice - productId.salePrice;
       const itemTotalPrice = productId.regularPrice * quantity;
+      let discountPrice = itemTotalPrice - price;
 
       totalPrice += price;
       finalAmount+=itemTotalPrice;
@@ -133,7 +134,7 @@ const addToOrder = async (req, res) => {
       couponApplied:couponId,
       userId,
     });
-
+    
     await newOrder.save();
 
     await Cart.findOneAndUpdate({ userId }, { items: [] });
@@ -198,9 +199,9 @@ const cancelOrder = async (req, res) => {
       }
 
      
-      userWallet.totalAmount += orderedItem.totalPrice;
+      userWallet.totalAmount += orderedItem.price;
       userWallet.transaction.push({
-        amount: orderedItem.totalPrice,
+        amount: orderedItem.price,
         description: `Refund for canceled item: ${orderedItem.name}`,
         type: "credit",
       });
@@ -216,10 +217,10 @@ const cancelOrder = async (req, res) => {
       return res.status(404).json({ success: false, message: "Product not found in database." });
     }
     product.quantity += orderedItem.quantity;
+    
     await product.save();
 
-    order.finalAmount -= orderedItem.totalPrice;
-
+   
     return res.json({ success: true, message: "Item status updated to 'Cancelled' successfully." });
   } catch (error) {
     console.error("Error canceling order item:", error);

@@ -188,6 +188,25 @@ const Checkout = async (req, res) => {
     }
 };
 
+const getCartCount = async (req, res) => {
+    try {
+        const userId = req.session.user; // Assuming the user ID is in the session
+        if (!userId) {
+            return res.json({ count: 0 }); // Return 0 if the user is not logged in
+        }
+
+        const cart = await Cart.findOne({ userId }); // Find the user's cart
+        const totalCount = cart 
+            ? cart.items.reduce((total, item) => total + item.quantity, 0) 
+            : 0;
+
+        res.json({ count: totalCount });
+    } catch (error) {
+        console.error("Error fetching cart count:", error);
+        res.status(500).json({ count: 0 });
+    }
+};
+
 
 module.exports= {
    
@@ -196,4 +215,5 @@ module.exports= {
     removeFromCart,
     changeQuantity,
     Checkout,
+    getCartCount
 }

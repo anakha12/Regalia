@@ -77,17 +77,18 @@
                    errorElement.remove();
                }
            }
+           input.value = inputValue;
        });
 
 
-       const addressType = document.getElementById('addressType').value;
-       const name = document.getElementById('name').value;
-       const city = document.getElementById('city').value;
-       const landMark = document.getElementById('landMark').value;
-       const state = document.getElementById('state').value;
-       const pincode = document.getElementById('pincode').value;
-       const phone = document.getElementById('phone').value;
-       const altPhone = document.getElementById('altPhone').value;
+       const addressType = document.getElementById('addressType').value.trim();
+       const name = document.getElementById('name').value.trim();
+       const city = document.getElementById('city').value.trim();
+       const landMark = document.getElementById('landMark').value.trim();
+       const state = document.getElementById('state').value.trim();
+       const pincode = document.getElementById('pincode').value.trim();
+       const phone = document.getElementById('phone').value.trim();
+       const altPhone = document.getElementById('altPhone').value.trim();
        const namePattern = /^[A-Za-z\s]+$/;
        const pincodePattern = /^\d{6}$/;
        const phonePattern = /^\d{10}$/;

@@ -38,8 +38,8 @@
                 </div>
                 
                 <p>Quantity: <%= item.quantity %></p>
-                <p>Price per Unit: $<%= item.price.toFixed(2) %></p>
-                <p>Total Price: $<%= item.totalPrice.toFixed(2) %></p>
+                <p>Total Price : $<%= item.price.toFixed(2) %></p>
+                <p>Total Price Before Discount: $<%= item.totalPrice.toFixed(2) %></p>
                 <p>Discount Price: $<%= item.discountPrice.toFixed(2) %></p>
                 
                 <!-- Individual product status -->
@@ -68,6 +68,7 @@
     <% } else { %>
       <p>You have no orders.</p>
     <% } %>
+    
 </div>
 
 <%- include("../../views/partials/user/footer") %>

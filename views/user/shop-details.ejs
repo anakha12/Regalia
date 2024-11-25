@@ -1,4 +1,4 @@
-<%- include("../../views/partials/user/header") %>
+<%-include("../../views/partials/user/header")%>
 <style>
   
 .product__details__pic__item {
@@ -217,32 +217,29 @@
     <!-- Related Section End -->
 
 
-  <%- include("../../views/partials/user/footer") %>
+  <%-include("../../views/partials/user/footer")%>
+
   <!-- Add the zoom functionality JavaScript at the end of the body -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const zoomImage = document.querySelector('.zoom-img');  // The image to be zoomed
-        const zoomContainer = document.querySelector('.product__details__pic__item');  // The container for the image
-
+        const zoomImage = document.querySelector('.zoom-img');  
+        const zoomContainer = document.querySelector('.product__details__pic__item');  
         zoomContainer.addEventListener('mousemove', (e) => {
             const containerRect = zoomContainer.getBoundingClientRect();
-            const mouseX = e.clientX - containerRect.left;  // Mouse X position inside the container
-            const mouseY = e.clientY - containerRect.top;   // Mouse Y position inside the container
+            const mouseX = e.clientX - containerRect.left;  
+            const mouseY = e.clientY - containerRect.top;   
             const zoomWidth = zoomImage.offsetWidth;
             const zoomHeight = zoomImage.offsetHeight;
 
-            // Calculate the percentage position of the mouse inside the image
             const posX = (mouseX / containerRect.width) * 100;
             const posY = (mouseY / containerRect.height) * 100;
 
-            // Apply the zoom effect
-            zoomImage.style.transformOrigin = `${posX}% ${posY}%`;  // Change the origin based on mouse position
-            zoomImage.style.transform = `scale(2)`;  // Zoom in by a factor of 2 (adjust as needed)
+            zoomImage.style.transformOrigin = `${posX}% ${posY}%`; 
+            zoomImage.style.transform = `scale(2)`; 
         });
 
-        // Reset the zoom effect when the mouse leaves the image container
         zoomContainer.addEventListener('mouseleave', () => {
-            zoomImage.style.transform = 'scale(1)';  // Reset zoom scale
+            zoomImage.style.transform = 'scale(1)'; 
         });
     });
 

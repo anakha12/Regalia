@@ -75,10 +75,25 @@ const addMoneyToWallet = async (req, res) => {
     }
 };
 
+const getAmount=async(req,res)=>{
+    try {
+        const userId = req.user._id; 
+        const wallet = await Wallet.findOne({ userId });
+
+        if (wallet) {
+            res.json({ totalAmount: wallet.totalAmount });
+        } else {
+            res.json({ totalAmount: 0 }); 
+        }
+    } catch (error) {
+        console.error('Error fetching wallet amount:', error);
+        res.status(500).json({ error: 'Failed to fetch wallet amount' });
+    }
+}
 
 
 module.exports= {
     getWallet,
     addMoneyToWallet,
-    
+    getAmount,
 }

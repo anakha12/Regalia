@@ -1324,6 +1324,24 @@ label {
           justify-content: space-between;
   width: 100%;
 }
+.badge {
+  border-radius: 50%; /* Ensures the badge is circular */
+  padding: 3px 6px; /* Smaller padding for a more compact size */
+  color: rgb(46, 56, 145);
+  font-size: 8px; /* Reduce font size for smaller text */
+  background-color: red; /* Fallback in case bg-danger isn't applied */
+  position: absolute; /* Allows precise positioning */
+  top: -5px; /* Adjust vertical positioning */
+  right: -5px; /* Adjust horizontal positioning */
+  min-width: 18px; /* Ensure badge is a perfect circle */
+  min-height: 18px; /* Match width for circular shape */
+  display: flex; /* Align text */
+  justify-content: center; /* Center text horizontally */
+  align-items: center; /* Center text vertically */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}
+
+
 
 .custome-checkbox input[type="checkbox"]:checked + .form-check-label::before {
   background-color: #088178;

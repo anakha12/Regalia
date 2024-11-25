@@ -150,10 +150,18 @@
                                 <ul class="dropdown">
                                     <li><a href="./about.html">About Us</a></li>
                                     <li><a href="">Shop Details</a></li>
-                                    <li><a href="./shopping-cart.html">Shopping Cart</a></li>
+                                    <li>
+                                        <!-- <a href="/cart">
+                                            <i class="fas fa-shopping-cart"></i>
+                                            <span id="cart-badge" class="badge bg-danger"style="width: 100px;height: 100px;"> hjj</span>
+                                        </a> -->
+                                        
+                                    </li>
+                                    
                                     <li><a href="./checkout.html">Check Out</a></li>
                                     <li><a href="./blog-details.html">Blog Details</a></li>
                                 </ul>
+                                
                             </li>
                             <li><a href="./blog.html">Blog</a></li>
                             <li><a href="./contact.html">Contacts</a></li>
@@ -164,12 +172,71 @@
                     <div class="header__nav__option">
                         <a href="#" class="search-switch"><img src="img/icon/search.png" alt=""></a>
                         <a href="/wishlist"><img src="img/icon/heart.png" alt=""></a>
-                        <a href="/cart"><img src="img/icon/cart.png" alt=""> <span></span></a>
-                        <div class="price">$0.00</div>
+                       
+                        <a href="/cart"><img src="img/icon/cart.png" alt="">
+                            <span id="cart-badge" class="badge "></span>
+                        </a>
+                        <div class="price" style="margin-left: -2px; position: relative; top: -3px;">
+                            $<span id="wallet-amount">0.00</span>
+                        </div>
+                        
+                                        
                     </div>
                 </div>
             </div>
             <div class="canvas__open"><i class="fa fa-bars"></i></div>
         </div>
+       <script>
+        async function updateCartCount() {
+    try {
+        const response = await fetch('http://localhost:3000/cart-count');
+        if (response.ok) {
+            const data = await response.json();
+            const cartCount = data.count;
+
+            const badgeElement = document.getElementById('cart-badge');
+            if (badgeElement) {
+                badgeElement.textContent = cartCount;
+                badgeElement.style.display = cartCount > 0 ? 'inline-block' : 'none';
+            }
+        } else {
+            console.error('Failed to fetch cart count:', response.status);
+        }
+    } catch (error) {
+        console.error('Error fetching cart count:', error);
+    }
+}
+
+// Update cart count on page load
+updateCartCount();
+
+       </script>
+       <script>
+        // Fetch wallet amount on page load
+        async function updateWalletAmount() {
+            try {
+                const response = await fetch('/wallet-amount'); // Ensure this endpoint matches your backend route
+                if (response.ok) {
+                    const data = await response.json();
+                    const walletAmount = data.totalAmount || 0;
+    
+                    // Update the wallet amount in the header
+                    const walletAmountElement = document.getElementById('wallet-amount');
+                    if (walletAmountElement) {
+                        walletAmountElement.textContent = walletAmount.toFixed(2); // Format as currency
+                    }
+                } else {
+                    console.error('Failed to fetch wallet amount:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching wallet amount:', error);
+            }
+        }
+    
+        // Call the function on page load
+        updateWalletAmount();
+    </script>
+    
+        
     </header>
     <!-- Header Section End -->

@@ -42,21 +42,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <div class="d-flex justify-content-end mb-4">
-  <form method="GET" action="/admin/sales" onsubmit="console.log('Filter:', this.filter.value)">
-      <select name="filter" class="form-select w-auto me-2">
-        <option value="" disabled selected>Select Filter</option>
-        <option value="daily" <%= filter === 'daily' ? 'selected' : '' %>>Daily</option>
-        <option value="weekly" <%= filter === 'weekly' ? 'selected' : '' %>>Weekly</option>
-        <option value="monthly" <%= filter === 'monthly' ? 'selected' : '' %>>Monthly</option>
-        <option value="yearly" <%= filter === 'yearly' ? 'selected' : '' %>>Yearly</option>
-      </select>
-      <button type="submit" class="btn btn-primary">Filter</button>
-    </form>
+  <form method="GET" action="/admin/sales" onsubmit="console.log('Filter:', this.filter.value, 'Start Date:', this.startDate.value, 'End Date:', this.endDate.value)">
+    <select name="filter" class="form-select w-auto me-2" onchange="toggleDateInputs(this.value)">
+      <option value="" disabled selected>Select Filter</option>
+      <option value="daily" <%= filter === 'daily' ? 'selected' : '' %>>Daily</option>
+      <option value="weekly" <%= filter === 'weekly' ? 'selected' : '' %>>Weekly</option>
+      <option value="monthly" <%= filter === 'monthly' ? 'selected' : '' %>>Monthly</option>
+      <option value="yearly" <%= filter === 'yearly' ? 'selected' : '' %>>Yearly</option>
+      <option value="custom" <%= filter === 'custom' ? 'selected' : '' %>>Custom Range</option>
+    </select>
+  
+    <div id="custom-date-range" style="display: none;">
+      <input type="date" name="startDate" class="form-control w-auto me-2" placeholder="Start Date" value="<%= startDate %>">
+      <input type="date" name="endDate" class="form-control w-auto me-2" placeholder="End Date" value="<%= endDate %>">
+    </div>
+  
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </form>
 </div>
 <div class="container my-4" id="salesReport">
     <h1 class="text-center">Sales Report</h1>
 
-    <!-- Summary Section -->
     <div class="row g-3">
         <div class="col-md-6">
           <div class="card p-3">
@@ -73,7 +79,10 @@
             <p>Pending: <%= statusCounts.Pending || 0 %></p>
             <p>Delivered: <%= statusCounts.Delivered || 0 %></p>
             <p>Cancelled: <%= statusCounts.Cancelled || 0 %></p>
-           
+            <p>Processing: <%= statusCounts.Processing || 0 %></p>
+            <p>Placed: <%= statusCounts.Placed || 0 %></p>
+            <p>Shipped: <%= statusCounts.Shipped || 0 %></p>
+            
           </div>
         </div>
       </div>
@@ -148,6 +157,21 @@
       }
     });
 
+  </script>
+  <script>
+    function toggleDateInputs(filterValue) {
+      const dateRangeDiv = document.getElementById('custom-date-range');
+      if (filterValue === 'custom') {
+        dateRangeDiv.style.display = 'block';
+      } else {
+        dateRangeDiv.style.display = 'none';
+      }
+    }
+  
+    window.onload = () => {
+      const filterValue = document.querySelector('[name="filter"]').value;
+      toggleDateInputs(filterValue);
+    };
   </script>
   
   

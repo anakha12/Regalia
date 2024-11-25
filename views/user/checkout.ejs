@@ -230,7 +230,6 @@
         return;
     }
 
-    // If payment method is Razorpay
     if (paymentMethod === 'Razorpay') {
         fetch('/createOrder', {
             method: 'POST',
@@ -262,7 +261,6 @@
                         .then(res => res.json())
                         .then(verification => {
                             if (verification.success) {
-                                // After verification success, add order to database
                                 fetch('/addToOrder', {
                                     method: 'POST',
                                     headers: {

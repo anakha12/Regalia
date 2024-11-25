@@ -67,16 +67,18 @@
                                         <div class="card-body">
                                             <div class="shop__sidebar__price">
                                                 <ul>
-                                                    <li><a href="#">$0.00 - $50.00</a></li>
-                                                    <li><a href="#">$50.00 - $100.00</a></li>
-                                                    <li><a href="#">$100.00 - $150.00</a></li>
-                                                    <li><a href="#">$150.00 - $200.00</a></li>
-                                                    <li><a href="#">$200.00 - $250.00</a></li>
-                                                    <li><a href="#">250.00+</a></li>
+                                                    <li><a href="/Shop">Show All</a></li>
+                                                    <li><a href="/filterShop?minPrice=0&maxPrice=200">$0.00 - $200.00</a></li>
+                                                    <li><a href="/filterShop?minPrice=200&maxPrice=400">$200.00 - $400.00</a></li>
+                                                    <li><a href="/filterShop?minPrice=400&maxPrice=600">$400.00 - $600.00</a></li>
+                                                    <li><a href="/filterShop?minPrice=600&maxPrice=800">$600.00 - $800.00</a></li>
+                                                    <li><a href="/filterShop?minPrice=800&maxPrice=1000">$800.00 - $1000.00</a></li>
+                                                    <li><a href="/filterShop?minPrice=1000">$1000.00+</a></li>
                                                 </ul>
                                             </div>
                                         </div>
                                     </div>
+                                    
                                 </div>
 
 
@@ -163,6 +165,7 @@
     </section>
     <!-- Shop Section End -->
     <%-include("../../views/partials/user/footer")%>
+    
     <script>
     document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.querySelector(".shop__sidebar__search input"); 

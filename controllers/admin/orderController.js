@@ -115,8 +115,10 @@ const cancelOrder = async (req, res) => {
             product.quantity += orderedItem.quantity;
             await product.save();
         }
+        // order.totalPrice -= orderedItem.totalPrice; 
+        // order.finalAmount = order.totalPrice - order.discount;
 
-        await order.save();
+        // await order.save();
 
         res.json({ success: true, message: "Product has been cancelled in the order", updatedOrder: order });
     } catch (error) {

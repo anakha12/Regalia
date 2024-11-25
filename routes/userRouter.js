@@ -59,6 +59,8 @@ router.post('/cart/update-quantity/:productId',cartController.changeQuantity);
 router.get('/checkout',userAuth,cartController.Checkout);
 router.get('/addAddressCart',userAuth,profileController.addAddressCart);
 router.post('/addAddressCart',userAuth,profileController.addAddressPostCart);
+router.get('/cart-count',userAuth,cartController.getCartCount);
+router.get('/wallet-amount',userAuth,walletController.getAmount);
 
 router.post('/addToOrder',userAuth,orderController.addToOrder);
 router.get('/order',userAuth,orderController.getOrders);
