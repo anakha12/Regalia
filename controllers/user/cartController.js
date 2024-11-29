@@ -163,8 +163,9 @@ const changeQuantity = async (req, res) => {
 const Checkout = async (req, res) => {
     try {
         const userId = req.session.user; 
-        const coupons =await Coupon.find();
-        
+        const coupons =req.session.appliedCoupon || null;
+        console.log(coupons);
+
         const cart = await Cart.findOne({ userId: userId }).populate('items.productId'); 
 
         if (!cart || cart.items.length === 0) {
@@ -173,14 +174,22 @@ const Checkout = async (req, res) => {
 
         const user = await User.findById(userId); 
         const addressData = await Address.findOne({ userId }).lean(); 
-     
+
+        const regularPriceTotal = cart.items.reduce((total, item) => {
+            const regularPrice = item.productId.regularPrice || 0; 
+            return total + (regularPrice * item.quantity); 
+        }, 0);
+        const cartTotal=cart.items.reduce((total, item) => total + item.totalPrice, 0)
+        const offer=regularPriceTotal-cartTotal;
+        
         res.render('checkout', {
             user,
             cartItems: cart.items,
             userAddresses: addressData ? addressData.address : [],
-            subtotal: cart.items.reduce((total, item) => total + item.totalPrice, 0), 
-            cartTotal: cart.items.reduce((total, item) => total + item.totalPrice, 0),
-            coupons
+            subtotal: regularPriceTotal, 
+            cartTotal:cartTotal,
+            offer,
+            coupons,
         });
     } catch (error) {
         console.error('Error fetching cart or user data:', error);
@@ -190,12 +199,12 @@ const Checkout = async (req, res) => {
 
 const getCartCount = async (req, res) => {
     try {
-        const userId = req.session.user; // Assuming the user ID is in the session
+        const userId = req.session.user; 
         if (!userId) {
-            return res.json({ count: 0 }); // Return 0 if the user is not logged in
+            return res.json({ count: 0 });
         }
 
-        const cart = await Cart.findOne({ userId }); // Find the user's cart
+        const cart = await Cart.findOne({ userId });
         const totalCount = cart 
             ? cart.items.reduce((total, item) => total + item.quantity, 0) 
             : 0;

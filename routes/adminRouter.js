@@ -63,5 +63,6 @@ router.post('/addCoupon',adminAuth,couponController.postAddCoupon)
 
 router.get('/deleteCoupon/:couponId',adminAuth,couponController.deleteCoupon);
 
-router.get('/sales',adminAuth,salesController.getSales)
+router.get('/sales',adminAuth,salesController.getSales);
+router.get('/dashboard/chart-data',adminController.loadChartData);
 module.exports=router;

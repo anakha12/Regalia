@@ -1,5 +1,19 @@
 <%- include("../../views/partials/user/header") %>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script> 
+<style>
+  .download-invoice-button {
+    background-color: #0a0a0a; 
+    color: white;
+    border: none;
+    padding: 2px 10px;
+    font-size: 14px;
+    cursor: pointer;
+  
+    transition: background-color 0.3s ease;
+    
+}
 
+</style>
 <div class="container">
     <h1>Your Orders</h1>
 
@@ -11,8 +25,12 @@
             <h4>ORDER ID: <span class="order-id"><%= order.orderId %></span></h4>
             <p>Order Date: <%= new Date(order.invoiceDate).toLocaleDateString() %></p>
             <p>Total Price: $<%= order.totalPrice.toFixed(2) %></p>
-            <p>Discount Applied: <%= order.discount %>%</p>
-            <p>Final Amount: $<%= order.finalAmount.toFixed(2) %></p>
+            <p>Discount Applied: $<%= order.discount %></p>
+            <% if (order.couponApplied) { %>
+              <p>Coupon Applied: $<%= order.couponApplied.couponAmount %></p>
+            <% } else { %>
+              <p>Coupon Applied: $0</p>
+            <% } %>
 
             <!-- Overall order status -->
             <p class="overall-status">
@@ -22,8 +40,18 @@
               <% let maxStatus = statuses.reduce((max, status) => priority[status] > priority[max] ? status : max, statuses[0]); %>
               <span class="status-<%= maxStatus.toLowerCase().replace(/\s+/g, '-') %>"><%= maxStatus %></span>
             </p>
+            <p>Payment Status: 
+              <% if (order.paymentStatus === 'Failed') { %>
+                <span class="status-failed" style="color: red; font-weight: bold;">Failed</span>
+               
+                <button class="retry-button" onclick="retryPayment('<%= order._id %>', <%= order.totalPrice %>)">Retry Payment</button>
+  
+              <% } else { %>
+                <span class="status-<%= order.paymentStatus.toLowerCase() %>" style="color: rgb(10, 109, 25); font-weight: bold;"><%= order.paymentStatus %></span>
+              <% } %>
+            </p>
           </div>
-
+         
           <div class="ordered-items">
             <% order.Ordereditems.forEach(item => { %>
               <div class="item-card">
@@ -38,27 +66,33 @@
                 </div>
                 
                 <p>Quantity: <%= item.quantity %></p>
-                <p>Total Price : $<%= item.price.toFixed(2) %></p>
+                
                 <p>Total Price Before Discount: $<%= item.totalPrice.toFixed(2) %></p>
                 <p>Discount Price: $<%= item.discountPrice.toFixed(2) %></p>
-                
-                <!-- Individual product status -->
-                <p class="product-status">
+                <p>Total Price : $<%= item.price.toFixed(2) %></p>
+                <p>
                   Status: 
-                  <span class="status-<%= item.status.toLowerCase().replace(/\s+/g, '-') %>"><%= item.status %></span>
+                  <span class="status-<%= item.status.toLowerCase().replace(/\s+/g, '-') %>">
+                    <%= item.status %>
+                  </span>
                 </p>
+               
+               
+                
 
                 <p>
-                  <% if (['Pending', 'Processing', 'Placed', 'Shipped', 'Out for Delivery'].includes(item.status)) { %>
+                  <% if (['Pending', 'Processing', 'Placed', 'Shipped', 'Out for Delivery'].includes(item.status) && order.paymentStatus !== 'Failed') { %>
                     <button class="cancel-button" onclick="cancelOrder('<%= order._id %>', '<%= item.product._id %>')">
                       Cancel
-                  </button>
-                  <% } else if(['Delivered'].includes(item.status)){ %>
+                    </button>
+                  <% } else if (['Delivered'].includes(item.status)) { %>
                     <button class="return-button" onclick="returnOrder('<%= order._id %>', '<%= item.product._id %>')">Return</button>
-                 
+                    <button class="download-invoice-button" onclick="downloadInvoice('<%= order._id %>', '<%= item.product._id %>')">
+                      Download Invoice
+                    </button>
                   <% } %>
-                  
                 </p>
+                
               </div>
             <% }) %>
           </div>
@@ -135,6 +169,12 @@ function returnOrder(orderId, productId) {
         }
     });
 }
+
+function downloadInvoice(orderId, productId) {
+    const url = `/orders/invoice/${orderId}/${productId}`;
+    window.open(url, '_blank');
+}
+
 </script>
 
 <style>
@@ -160,6 +200,16 @@ function returnOrder(orderId, productId) {
     border: none;
     padding: 2px 10px;
     
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.retry-button{
+    background-color: #111111; 
+    color: white; 
+    border: none;
+    padding: 2px 10px;
+    margin-top: 10px;
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
@@ -218,45 +268,146 @@ function returnOrder(orderId, productId) {
   }
 
   .status-pending {
-    background-color: #e6ccb7;
-    color: #fff;
+  color: #d8945c;
+    
   }
 
   .status-processing {
-    background-color: #b0f1ea;
-    color: #fff;
+    color: #b0f1ea;
   }
 
   .status-shipped {
-    background-color: #8fd7f3;
-    color: #fff;
+    color: #8fd7f3;
   }
   .status-returned {
-    background-color: #9c567f;
-    color: #fff;
+    color: #9c567f;
   }
   .status-delivered {
-    background-color: #6dbd8b;
-    color: #fff;
+   color: #28c263;
   }
 
   .status-placed {
-    background-color: #b9dcfc; 
-    color: #fff;
+    color: #b9dcfc; 
   }
 
   .status-out-for-delivery {
-    background-color: #535a63;
-    color: #fff;
+    color: #535a63;
   }
 
   .status-cancelled {
-    background-color: #8a1007;
-    color: #fff;
+    color: #bb2116;
   }
 
   .status-default {
-    background-color: #808080;
-    color: #fff;
+   color: #808080;
   }
 </style>
+<script>
+  function retryPayment(orderId, amount) {
+    console.log("hi");
+
+    fetch('/createOrder', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            amount: amount    
+        })
+    })
+    .then(response => response.json())
+    .then(orderDetails => {
+        if (orderDetails.success) {
+            const options = {
+                key: orderDetails.key_id,
+                amount: orderDetails.amount,
+                currency: "INR",
+                name: "Your Store Name",
+                description: "Retry Payment for Order",
+                order_id: orderDetails.order_id,
+                handler: function (response) {
+                    fetch('/verifyPaymentAfterRetry', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            orderId: orderId 
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(verification => {
+                        if (verification.success) {
+                            Swal.fire({
+                                title: 'Payment Successful!',
+                                text: 'Your payment has been verified successfully.',
+                                icon: 'success',
+                                confirmButtonText: 'Go to Orders'
+                            }).then(() => {
+                                window.location.href = "/order";
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Payment Verification Failed',
+                                text: verification.message || 'Please contact support.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    });
+                },
+                prefill: {
+                    name: "Customer Name",
+                    email: "customer@example.com",
+                    contact: "9999999999"
+                },
+                theme: {
+                    color: "#3399cc"
+                }
+            };
+
+            const rzp = new Razorpay(options);
+
+            rzp.on('payment.failed', function (data) {
+                console.error('Payment Failed:', data);
+                fetch('/paymentFailed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        payment_id: data.error.metadata.payment_id,
+                        orderId: orderId
+                    })
+                });
+
+                Swal.fire({
+                    title: 'Payment Failed',
+                    text: data.error.description || 'Your payment could not be processed. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+
+            rzp.open();
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: 'Failed to retrieve order details for retry.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Unable to fetch order details. Please try again later.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    });
+}
+
+
+</script>

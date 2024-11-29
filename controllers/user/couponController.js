@@ -24,10 +24,9 @@ const applyCoupon = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid coupon code.' });
         }
 
-        // Check if the coupon is active and not expired
-        // if (!coupon.isActive || coupon.expirationDate < new Date()) {
-        //     return res.status(400).json({ success: false, message: 'Coupon is either inactive or expired.' });
-        // }
+        if (!coupon.isActive || coupon.expirationDate < new Date()) {
+            return res.status(400).json({ success: false, message: 'Coupon is either inactive or expired.' });
+        }
         if (coupon.totalLimit !== null && coupon.totalLimit <= 0) {
             return res.status(400).json({ success: false, message: 'Coupon usage limit has been reached.' });
         }
@@ -77,6 +76,13 @@ const applyCoupon = async (req, res) => {
         }
 
         await couponUser.save();
+        req.session.appliedCoupon = {
+            couponCode,
+            discount,
+            discountedPrice,
+        };
+
+        
 
         res.status(200).json({ success: true, discount, discountedPrice });
     } catch (error) {
@@ -85,8 +91,9 @@ const applyCoupon = async (req, res) => {
     }
 };
 
-const removeCoupon= async(req,res)=>{
+const removeCoupon = async (req, res) => {
     const { couponCode, totalPrice } = req.body;
+    const userId = req.session.user;
 
     try {
         const coupon = await Coupon.findOne({ couponCode });
@@ -94,16 +101,43 @@ const removeCoupon= async(req,res)=>{
             return res.status(400).json({ success: false, message: 'Invalid coupon code.' });
         }
 
-        const discount = parseFloat(coupon.couponAmount || 0); 
-        const discountedPrice = (totalPrice + discount).toFixed(2);
-        console.log(discountedPrice)
-        
+        const discount = parseFloat(coupon.couponAmount || 0);
+        const discountedPrice = (parseFloat(totalPrice) + discount).toFixed(2);
+
+        if (coupon.totalLimit !== null) {
+            coupon.totalLimit += 1;
+            await coupon.save();
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+
+        const couponIndex = user.couponApplied.findIndex(
+            (appliedCoupon) => appliedCoupon.couponId.toString() === coupon._id.toString()
+        );
+
+        if (couponIndex !== -1) {
+            const userCoupon = user.couponApplied[couponIndex];
+
+            userCoupon.usedCount -= 1;
+            if (userCoupon.usedCount <= 0) {
+                user.couponApplied.splice(couponIndex, 1); 
+            }
+        }
+
+        await user.save();
+        if (req.session.appliedCoupon && req.session.appliedCoupon.couponCode === couponCode) {
+            delete req.session.appliedCoupon;
+        }
 
         res.status(200).json({ success: true, discount, discountedPrice });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Failed to apply coupon.' });
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Failed to remove coupon.' });
     }
-}
+};
 
 
 

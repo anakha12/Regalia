@@ -64,8 +64,10 @@ router.get('/wallet-amount',userAuth,walletController.getAmount);
 
 router.post('/addToOrder',userAuth,orderController.addToOrder);
 router.get('/order',userAuth,orderController.getOrders);
-router.post('/orders/cancel',orderController.cancelOrder);
-router.post('/orders/return',orderController.returnOrder);
+router.post('/orders/cancel',userAuth,orderController.cancelOrder);
+router.post('/orders/return',userAuth,orderController.returnOrder);
+
+router.post('/paymentFailed',userAuth,orderController.handlePaymentFailure);
 router.get('/filterShop',userController.shop);
 router.get('/search', userController.searchProducts);
 
@@ -80,7 +82,10 @@ router.post('/verifyPayment',orderController.verifyPayment);
 
 router.get('/fetchCoupons', userAuth,couponController.getAllCoupon);
 router.post('/applyCoupon',userAuth,couponController.applyCoupon)
-router.post('/removeCoupon',userAuth,couponController.removeCoupon)
+router.post('/removeCoupon',userAuth,couponController.removeCoupon);
+router.post('/verifyPaymentAfterRetry',userAuth,orderController.verifyPaymentAfterRetry);
+
+router.get('/orders/invoice/:orderId/:productId',userAuth,orderController.invoice);
 router.get('/auth/google/callback', 
     passport.authenticate('google', { failureRedirect: '/signup' }), 
     (req, res) => {

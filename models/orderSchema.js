@@ -60,6 +60,10 @@ const orderSchema= new mongoose.Schema({
         type: String,
         required: true
         },
+        deliveryCharge:{
+          type:Number,
+          default:0,
+        },
         paymentStatus:{
           type: String,
           required:true,
@@ -99,9 +103,8 @@ const orderSchema= new mongoose.Schema({
         couponApplied:{
           type:Schema.Types.ObjectId,
           ref: "Coupon",
-         
-
-        }
+        },
+      
   
 })
 
