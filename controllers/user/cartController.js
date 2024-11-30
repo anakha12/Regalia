@@ -179,7 +179,9 @@ const Checkout = async (req, res) => {
             const regularPrice = item.productId.regularPrice || 0; 
             return total + (regularPrice * item.quantity); 
         }, 0);
-        const cartTotal=cart.items.reduce((total, item) => total + item.totalPrice, 0)
+        let cartTotal=cart.items.reduce((total, item) => total + item.totalPrice, 0);
+        if(coupons)cartTotal-=coupons.discount;
+        
         const offer=regularPriceTotal-cartTotal;
         
         res.render('checkout', {

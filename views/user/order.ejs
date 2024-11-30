@@ -15,7 +15,7 @@
 
 </style>
 <div class="container">
-    <h1>Your Orders</h1>
+    <h3>YOUR ORDERS</h3>
 
     <% if (orders && orders.length > 0) { %>
       <% orders.forEach(order => { %>
@@ -24,12 +24,12 @@
             <!-- Display full Order ID with reduced font size -->
             <h4>ORDER ID: <span class="order-id"><%= order.orderId %></span></h4>
             <p>Order Date: <%= new Date(order.invoiceDate).toLocaleDateString() %></p>
-            <p>Total Price: $<%= order.totalPrice.toFixed(2) %></p>
-            <p>Discount Applied: $<%= order.discount %></p>
+            <p>Total Price: ₹<%= order.totalPrice.toFixed(2) %></p>
+            <p>Discount Applied: ₹<%= order.discount %></p>
             <% if (order.couponApplied) { %>
-              <p>Coupon Applied: $<%= order.couponApplied.couponAmount %></p>
+              <p>Coupon Applied: ₹<%= order.couponApplied.couponAmount %></p>
             <% } else { %>
-              <p>Coupon Applied: $0</p>
+              <p>Coupon Applied: ₹0</p>
             <% } %>
 
             <!-- Overall order status -->
@@ -67,9 +67,9 @@
                 
                 <p>Quantity: <%= item.quantity %></p>
                 
-                <p>Total Price Before Discount: $<%= item.totalPrice.toFixed(2) %></p>
-                <p>Discount Price: $<%= item.discountPrice.toFixed(2) %></p>
-                <p>Total Price : $<%= item.price.toFixed(2) %></p>
+                <p>Total Price Before Discount: ₹<%= item.totalPrice.toFixed(2) %></p>
+                <p>Discount Price: ₹<%= item.discountPrice.toFixed(2) %></p>
+                <p>Total Price : ₹<%= item.price.toFixed(2) %></p>
                 <p>
                   Status: 
                   <span class="status-<%= item.status.toLowerCase().replace(/\s+/g, '-') %>">

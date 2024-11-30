@@ -132,7 +132,7 @@
                                 <td><%= transaction._id %></td>
                                 <td><%= new Date(transaction.date).toLocaleString() %></td>
                                 <td class="amount <%= transaction.type === 'credit' ? 'credit' : 'debit' %>">
-                                    <%= transaction.type === 'credit' ? '+' : '-' %>$<%= transaction.amount.toFixed(2) %>
+                                    <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toFixed(2) %>
                                 </td>
                             </tr>
                         <% }) %>

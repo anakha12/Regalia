@@ -117,7 +117,7 @@
                                         
                                         <!-- Product Price Column -->
                                         <td class="cart__price">
-                                            $<%= item.productId.salePrice %>
+                                            ₹<%= item.productId.salePrice %>
                                         </td>
                                         <!-- Quantity Column -->
                                         <td class="quantity__item">
@@ -131,7 +131,7 @@
                                         
                                         <!-- Total Price Column -->
                                         <td class="cart__price1">
-                                            $<%= item.totalPrice.toFixed(2) %>
+                                            ₹<%= item.totalPrice.toFixed(2) %>
                                         </td>
                                         <!-- Remove Item Column -->
                                         <td class="cart__close">
@@ -145,11 +145,7 @@
                 </div>
                 <div class="row">
                  
-                    <div class="col-lg-6 col-md-6 col-sm-6">
-                        <div class="continue__btn update__btn">
-                            <a href="/shop">Continue Shopping</a>
-                        </div>
-                    </div>
+                   
                 </div>
             </div>
             <div class="col-lg-4">
@@ -157,8 +153,8 @@
                 <div class="cart__total">
                     <h6>Cart total</h6>
                     <ul>
-                        <li>Subtotal <span class="subtotal-price">$<%= subtotal.toFixed(2) %></span></li>
-                        <li>Total <span class="total-price">$<%= total.toFixed(2) %></span></li>
+                        <li>Subtotal <span class="subtotal-price">₹<%= subtotal.toFixed(2) %></span></li>
+                        <li>Total <span class="total-price">₹<%= total.toFixed(2) %></span></li>
                         
                     </ul>
                     <a href="/checkout" class="primary-btn">Proceed to checkout</a>

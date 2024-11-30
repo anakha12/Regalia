@@ -1,6 +1,7 @@
 const Order = require("../../models/orderSchema");
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema");
+const Coupon = require("../../models/couponSchema");
 const moment = require('moment');
 
 const getSales = async (req, res) => {
@@ -37,6 +38,8 @@ const getSales = async (req, res) => {
             totalOrders: 0,
             totalRevenue: 0,
             totalDiscount: 0,
+            totalCouponAmount: 0,
+            totalCustomers:0,
             revenueAfterDiscount: 0,
             statusCounts: {},
             paymentMethods: {},
@@ -52,16 +55,20 @@ const getSales = async (req, res) => {
       paymentStatus: 'Success',
     })
       .populate('userId')
-      .populate('Ordereditems.product');
+      .populate('Ordereditems.product')
+      .populate('couponApplied');
 
     const totalOrders = orders.length;
-
+    const totalCustomers = await User.countDocuments();
     let totalRevenue = 0;
     let totalDiscount = 0;
+    let totalCouponAmount = 0; 
 
     const statusCounts = {};
+    const uniqueUsers = new Set();
 
     orders.forEach(order => {
+      uniqueUsers.add(order.userId?._id.toString());
       order.Ordereditems.forEach(item => {
         if (item.status !== 'Cancelled' && item.status !== 'Returned') {
           totalRevenue += item.totalPrice || 0;
@@ -70,9 +77,12 @@ const getSales = async (req, res) => {
       });
 
       totalDiscount += order.discount || 0;
+      if (order.couponApplied) {
+        totalCouponAmount += parseFloat(order.couponApplied.couponAmount) || 0;
+      }
     });
 
-    const revenueAfterDiscount = totalRevenue - totalDiscount;
+    const revenueAfterDiscount = totalRevenue - totalDiscount-totalCouponAmount;
 
     const paymentMethods = orders.reduce((counts, order) => {
       counts[order.paymentMethod] = (counts[order.paymentMethod] || 0) + 1;
@@ -85,8 +95,10 @@ const getSales = async (req, res) => {
       startDate,
       endDate,
       totalOrders,
+      totalCustomers:uniqueUsers.size,
       totalRevenue,
       totalDiscount,
+      totalCouponAmount,
       revenueAfterDiscount,
       statusCounts,
       paymentMethods,

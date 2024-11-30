@@ -16,6 +16,7 @@ const crypto = require('crypto');
 const PDFDocument = require('pdfkit');
 const path = require('path'); 
 const fs = require('fs'); 
+const { log } = require('console');
 
 
 
@@ -179,6 +180,7 @@ const getOrders = async (req, res) => {
         select: 'name images'
       })
        .populate('couponApplied')
+       .sort({ createdOn: -1 })
       .lean();
 
     res.render('order', { orders, user });
@@ -327,7 +329,7 @@ const returnOrder = async (req, res) => {
       userWallet.totalAmount += orderedItem.totalPrice;
       userWallet.transaction.push({
         amount: orderedItem.totalPrice,
-        description: `Refund for return item: ${orderedItem.name}`,
+        description: `Refund for return item: ₹{orderedItem.name}`,
         type: "credit",
       });
 
@@ -347,7 +349,7 @@ const instance = new Razorpay({
 
 const razorpayCrate = async (req, res) => {
   const { amount } = req.body;
-
+console.log("amount",amount)
   const options = {
       amount: amount * 100, 
       currency: "INR",
@@ -449,13 +451,7 @@ const invoice = async (req, res) => {
 
     const doc = new PDFDocument({ margin: 50 }); 
     const fileName = `invoice-${orderId}-${productId}.pdf`;
-    const invoicesDir = path.join(__dirname, 'invoices');
-
-    if (!fs.existsSync(invoicesDir)) {
-      fs.mkdirSync(invoicesDir);
-    }
-
-    const filePath = path.join(invoicesDir, fileName);
+  
 
     res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
     res.setHeader('Content-Type', 'application/pdf');
@@ -511,7 +507,7 @@ const invoice = async (req, res) => {
 
     // Add Table Content
     let y = tableTop + 30;
-    addRow(doc, y, item.product.productName, item.quantity.toString(), `$${item.price.toFixed(2)}`, `$${item.totalPrice.toFixed(2)}`);
+    addRow(doc, y, item.product.productName, item.quantity.toString(), `$${item.price.toFixed(2)}`, `₹${item.totalPrice.toFixed(2)}`);
 
     doc.moveTo(50, y + 20).lineTo(550, y + 20).stroke();
 
@@ -540,13 +536,12 @@ const invoice = async (req, res) => {
 
 const handlePaymentFailure = async (req, res) => {
   try {
-    const userId = req.session.user; // Assuming user is stored in session
+    const userId = req.session.user; 
     const { selectedAddressId, paymentMethod, couponApplied } = req.body;
 
     let couponId = null;
     let couponAmount = null;
 
-    // Handle coupon logic
     if (couponApplied) {
       const coupon = await Coupon.findOne({ couponCode: couponApplied.toUpperCase(), isActive: true });
       if (coupon) {
@@ -557,13 +552,11 @@ const handlePaymentFailure = async (req, res) => {
       }
     }
 
-    // Fetch user's cart
     const cart = await Cart.findOne({ userId }).populate('items.productId');
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ message: 'Your cart is empty.' });
     }
 
-    // Fetch the selected address
     const addressData = await Address.findOne(
       { userId, 'address._id': selectedAddressId },
       { 'address.$': 1 }
@@ -573,7 +566,6 @@ const handlePaymentFailure = async (req, res) => {
     }
     const address = addressData.address[0];
 
-    // Prepare ordered items
     let totalPrice = 0;
     let finalAmount = 0;
     const orderedItems = [];
@@ -604,12 +596,10 @@ const handlePaymentFailure = async (req, res) => {
 
     const discount = finalAmount - totalPrice;
 
-    // Apply coupon discount
     if (couponAmount) {
       totalPrice -= couponAmount;
     }
 
-    // Create the new order with payment failure
     const newOrder = new Order({
       Ordereditems: orderedItems,
       totalPrice,
@@ -617,7 +607,7 @@ const handlePaymentFailure = async (req, res) => {
       finalAmount,
       address: selectedAddressId,
       paymentMethod,
-      paymentStatus: 'Failed', // Mark payment as failed
+      paymentStatus: 'Failed', 
       invoiceDate: new Date(),
       status: 'Pending',
       couponApplied: couponId,
@@ -626,7 +616,6 @@ const handlePaymentFailure = async (req, res) => {
 
     await newOrder.save();
 
-    // Clear user's cart
     await Cart.findOneAndUpdate({ userId }, { items: [] });
 
     res.status(201).json({

@@ -40,6 +40,7 @@ const applyCoupon = async (req, res) => {
 
         const discount = parseFloat(coupon.couponAmount || 0);
         const discountedPrice = (totalPrice - discount).toFixed(2);
+        console.log(discountedPrice)
         if (discountedPrice < 0) {
             return res.status(400).json({ success: false, message: 'Discount exceeds total price.' });
         }
@@ -79,12 +80,10 @@ const applyCoupon = async (req, res) => {
         req.session.appliedCoupon = {
             couponCode,
             discount,
-            discountedPrice,
+            discountedPrice: Number(discountedPrice),
         };
 
-        
-
-        res.status(200).json({ success: true, discount, discountedPrice });
+        res.status(200).json({ success: true });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Failed to apply coupon.' });
@@ -93,10 +92,11 @@ const applyCoupon = async (req, res) => {
 
 const removeCoupon = async (req, res) => {
     const { couponCode, totalPrice } = req.body;
+    console.log("<<<<<<<<<<<>>>>>>>>>>>>>>",couponCode, totalPrice)
     const userId = req.session.user;
-
+console.log(userId)
     try {
-        const coupon = await Coupon.findOne({ couponCode });
+        const coupon = await Coupon.findOne({ couponCode })
         if (!coupon) {
             return res.status(400).json({ success: false, message: 'Invalid coupon code.' });
         }

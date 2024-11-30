@@ -24,7 +24,7 @@ const getWallet = async (req, res) => {
                 user,
             });
         }
-
+        const sortedTransactions = wallet.transaction.sort((a, b) => new Date(b.date) - new Date(a.date));
         res.render('wallet', {
             walletBalance: wallet.totalAmount,
             transactions: wallet.transaction,

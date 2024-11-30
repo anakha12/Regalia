@@ -1,5 +1,6 @@
 
 const User=require('../../models/userSchema');
+const Wallet=require('../../models/walletSchema');
 const Category=require('../../models/categorySchema');
 const Product=require('../../models/productSchema')
 const env= require('dotenv').config();
@@ -205,9 +206,9 @@ async function sendVerificationEmail(email,otp) {
 const signup=async(req,res)=>{
     
     try {
-        const {name,email,phone,password,cPassword}=  req.body;
-      
-
+        const {name,email,phone,password,cPassword,referralCode}=  req.body;
+        
+    
         if(password!==cPassword){
             return res.render("signup",{message:'Password do not match'})
         }
@@ -228,7 +229,7 @@ const signup=async(req,res)=>{
         req.session.userOtp=otp;
         req.session.userData={email,password,name,phone};
 
-        res.render("verify-otp");   
+        res.render("verify-otp",{referralCode});   
         console.log("OTP Sent",req.session.userOtp);
 
     } catch (error) {
@@ -247,10 +248,15 @@ const securePassword = async (password) => {
         throw new Error('Password hashing failed');
     }
 };
+const generateReferralCode = () => {
+    return Math.random().toString(36).substring(2, 8).toUpperCase(); 
+};
+
 
 const verifyOtp = async (req, res) => {
     try {
-        const { otp } = req.body;
+       
+        const { otp, referralCode } = req.body;
         console.log("Received OTP:", otp);
 
        
@@ -258,15 +264,70 @@ const verifyOtp = async (req, res) => {
             const user = req.session.userData;
             const passwordHash = await securePassword(user.password);
 
-            const saveUserData = new User({
+            let newReferralCode = generateReferralCode();
+            while (await User.findOne({ referralCode: newReferralCode })) {
+                newReferralCode = generateReferralCode(); 
+            }
+
+            const newUser = new User({
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
                 password: passwordHash,
+                referralCode: newReferralCode,
                 googleId: user.googleId || null 
             });
+            if (referralCode) {
+                const referrer = await User.findOne({ referralCode });
+                if (referrer) {
+                    const referrerWallet = await Wallet.findOne({ userId: referrer._id });
+                    if (referrerWallet) {
+                        referrerWallet.transaction.push({
+                            amount: 100,
+                            description: "Referral bonus",
+                            type: "credit",
+                        });
+                        referrerWallet.totalAmount += 100;
+                        await referrerWallet.save();
+                    } else {
+                        await Wallet.create({
+                            userId: referrer._id,
+                            transaction: [
+                                {
+                                    amount: 100,
+                                    description: "Referral bonus",
+                                    type: "credit",
+                                },
+                            ],
+                            totalAmount: 100,
+                        });
+                    }
 
-            await saveUserData.save();
+                    await Wallet.create({
+                        userId: newUser._id,
+                        transaction: [
+                            {
+                                amount: 100,
+                                description: "Welcome bonus for referral",
+                                type: "credit",
+                            },
+                        ],
+                        totalAmount: 100,
+                    });
+                } else {
+                    return res.status(400).json({ success: false, message: "Invalid referral code" });
+                }
+            } else {
+                await Wallet.create({
+                    userId: newUser._id,
+                    transaction: [],
+                    totalAmount: 0,
+                });
+            }
+
+            await newUser.save();
+
+            
 
             res.json({ success: true, message: "OTP verified successfully", redirectUrl: '/login' });
         } else {

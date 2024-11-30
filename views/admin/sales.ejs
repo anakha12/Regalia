@@ -61,15 +61,16 @@
   </form>
 </div>
 <div class="container my-4" id="salesReport">
-    <h1 class="text-center">Sales Report</h1>
+    <h3 class="text-center">SALES REPORT</h3>
 
     <div class="row g-3">
         <div class="col-md-6">
           <div class="card p-3">
             <h5>Summary</h5>
             <p>Total Orders: <%= totalOrders %></p>
+            <p>Total Customers: <%= totalCustomers %></p>
+
             <p>Total Revenue: ₹<%= totalRevenue.toFixed(2) %></p>
-            <p>Total Discounts: ₹<%= totalDiscount.toFixed(2) %></p>
             <p>Revenue After Discount: ₹<%= revenueAfterDiscount.toFixed(2) %></p>
           </div>
         </div>
@@ -97,6 +98,17 @@
           <% }) %>
         </div>
       </div>
+
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h5>Total Disscount</h5>
+          <p>Offer: ₹<%= totalDiscount.toFixed(2) %></p>
+          <p>Coupon offer: ₹<%= totalCouponAmount.toFixed(2) %></p>
+
+          
+        </div>
+      </div>
+
     </div>
   
     <!-- Order Table -->

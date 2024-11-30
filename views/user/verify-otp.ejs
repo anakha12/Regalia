@@ -106,7 +106,7 @@
     
     <form id="otpForm" action="/verify-otp" method="POST" onsubmit="return validateOtpForm()">
         <input type="text" id="otp" name="otp" placeholder="Enter OTP" maxlength="6" required />
-        
+        <input type="hidden" id="referralCode" name="referralCode" value="<%= referralCode %>" />
         <div class="timer">Time remaining: <span id="countdown">60</span> seconds</div>
         
         <button id="verifyBtn" type="submit" class="v">Verify OTP</button>
@@ -137,10 +137,8 @@
         }, 1000);
     }
     
-    // Disable the resend OTP initially
     resendElement.style.display = 'none';
     
-    // Start the timer on page load
     startTimer();
 
     // Resend OTP logic
@@ -164,12 +162,14 @@
 
     function validateOtpForm(){
         const otpInput=document.getElementById('otp').value;
-
+        const referralCode = document.getElementById('referralCode').value;
         $.ajax({
            
             type:"POST",
             url:'/verify-otp',
-            data:{otp:otpInput},
+            data:{otp:otpInput,
+                referralCode: referralCode,
+            },
             success:function(response){
                 
                 if(response.success){

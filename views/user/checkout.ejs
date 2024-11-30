@@ -54,19 +54,19 @@
                                     <tr>
                                         <td><%= item.productId.productName %></td>
                                         <td><img src="/uploads/product-images/<%= item.productId.productImage && item.productId.productImage.length > 0 ? item.productId.productImage[0] : 'default-image.jpg' %>" alt="<%= item.productId.productName %>" style="width: 100px; height: auto;"></td>
-                                        <td>$<%= item.productId.regularPrice %></td>
+                                        <td>₹<%= item.productId.regularPrice %></td>
                                         
                                         <td>
                                             <%const offerAmount = item.productId.regularPrice - item.totalPrice%>
                                             <% if (offerAmount > 0) { %>
-                                                $<%= offerAmount.toFixed(2) %>
+                                                ₹<%= offerAmount.toFixed(2) %>
                                             <% } else { %>
-                                                $0.00
+                                                ₹0.00
                                             <% } %>
                                         </td>
                                         
                                         <td><%= item.quantity %></td>
-                                        <td>$<%= item.totalPrice.toFixed(2) %></td>
+                                        <td>₹<%= item.totalPrice.toFixed(2) %></td>
                                     </tr>
                                 <% }); %>
                             <% } %>
@@ -76,6 +76,7 @@
                 </div>
                 <input type="hidden" id="cartTotal" value="<%= cartTotal %>">
                 <h6 class="checkout__title">Billing Details</h6>
+                <input type="hidden" name="userAddresses" id="userAddresses" value="<%= userAddresses[0] %>">
                 <% if (userAddresses && userAddresses.length > 0) { %>
                     <p>Your Addresses:</p>
                     <form action="/checkout/select-address" method="POST" style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 10px;">
@@ -134,34 +135,59 @@
         <div class="checkout__order__products">Product <span>Total</span></div>
         <ul class="checkout__total__products">
             <% cartItems.forEach(item => { %>
-                <li><%= item.productId.productName %> <span>$<%= item.totalPrice.toFixed(2) %></span></li>
+                <li><%= item.productId.productName %> <span>₹<%= item.totalPrice.toFixed(2) %></span></li>
             <% }); %>
         </ul>
         <ul class="checkout__total__all">
-            <li>Subtotal <span>$<%= subtotal.toFixed(2) %></span></li>
-            <li>Offer <span>$<%= offer.toFixed(2) %></span></li>
+            <li>Subtotal <span>₹<%= subtotal.toFixed(2) %></span></li>
+            <li>Offer <span>₹<%= offer.toFixed(2) %></span></li>
             <% if (coupons) { %>
                 <li class="coupon-discount">
                     Coupon Discount (<%= coupons.couponCode %>)
-                    <span>$<%= coupons.discount.toFixed(2) %></span>
+                    <span>₹<%= coupons.discount.toFixed(2) %></span>
                 </li>
+                <li >Total <span id="couponDiscountAmount">₹<%= coupons.discountedPrice.toFixed(2) %></span></li>
             <% } else { %>
-                <li class="coupon-discount">Coupon Discount <span>$0</span></li>
+                <li class="coupon-discount">Coupon Discount <span>₹0</span></li>
+                <li>Total <span >₹<%= cartTotal.toFixed(2) %></span></li>
             <% } %>
-            <li>Total <span>$<%= cartTotal.toFixed(2) %></span></li>
+
+            <input type="text" name="totalCheckoutAmount" id="totalCheckoutAmount" 
+            value="<%= coupons ? coupons.discountedPrice : cartTotal %>">
+     
+            
         </ul>
         
 
        <!-- Coupon Discount -->
 <div class="cart__discount" style="margin: 20px 0; display: flex; align-items: center;">
-
-    <input type="text" id="couponCode" placeholder="Coupon code" style="width: 60%; padding: 8px; border: 1px solid #ddd; margin-right: 10px;">
+  
+    <!-- <input type="text" id="couponCode" placeholder="Coupon code" style="width: 60%; padding: 8px; border: 1px solid #ddd; margin-right: 10px;">
     <button type="button" id="selectCoupon" style="padding: 10px 20px; background: #0f0f0f; color: #fff; border: none;  cursor: pointer;">
         Coupons
     </button>
     <button type="button" id="applyCoupon" style="padding: 10px 20px; background: #070707; color: #fff; border: none;  cursor: pointer; margin-left: 10px;">
         Apply
     </button>
+    -->
+
+    <div id="couponControls">
+        <input type="text" id="ExCouponCode" value="<%= coupons?.couponCode %>" class="hidden">
+        <% if (!coupons) { %>
+            <input type="text" id="couponCode" placeholder="Coupon code" style="width: 60%; padding: 8px; border: 1px solid #ddd; margin-right: 10px;">
+            <button type="button" id="selectCoupon" style="padding: 10px 20px; background: #0f0f0f; color: #fff; border: none; cursor: pointer;">
+                Coupons
+            </button>
+            <button type="button" id="applyCoupon" style="padding: 10px 20px; background: #070707; color: #fff; border: none; cursor: pointer; margin-left: 10px;">
+                Apply
+            </button>
+        <% } else { %>
+            <button type="button" id="removeCoupon" style="padding: 10px 20px; background: #070707; color: #fff; border: none; cursor: pointer; margin-left: 10px;">
+                Remove 
+            </button>
+        <% } %>
+    </div>
+    
 </div>
 
 <!-- Modal for Coupons -->
@@ -236,16 +262,75 @@
 <br><br>
 <br><br>
 <!-- Checkout Section End -->
-<script>
-  document.getElementById('proceedToPay').addEventListener('click', function(event) {
-    event.preventDefault();
-    const couponCode = document.getElementById('couponCode').value.trim();
-    const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked').value;
-    const paymentMethod = document.querySelector('input[id="payment"]').checked ? 'Cash on Delivery' : 
-                          document.querySelector('input[id="wallet"]').checked ? 'Wallet' : 
-                          document.querySelector('input[id="paypal"]').checked ? 'Razorpay' : null;
+<script> 
 
-    const cartTotal = parseFloat(document.querySelector('.checkout__total__all li:last-child span').textContent.replace('$', '').trim());                    
+document.addEventListener('DOMContentLoaded', () => {
+    const removeCouponButton = document.getElementById('removeCoupon');
+    const couponCodeInput = document.getElementById('ExCouponCode');
+    removeCouponButton.addEventListener('click', async () => {
+       
+        try {
+            const couponDiscountAmount = document.getElementById('couponDiscountAmount');
+           const totalPrice = parseFloat(couponDiscountAmount.textContent || 0);
+alert("before");
+
+const removeResponse = await fetch('/removeCoupon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ couponCode:couponCodeInput.value, totalPrice }),
+        });
+
+        if (!removeResponse.ok) {
+            throw new Error(`HTTP error! status: ${removeResponse.status}`);
+        }
+
+        alert("AFTER");
+            const removeData = await removeResponse.json();
+
+            if (removeData.success) {
+                Swal.fire('Success', 'Coupon removed successfully.', 'success');
+                location.reload();
+            } else {
+                Swal.fire('Error', removeData.message || 'Failed to remove the coupon.', 'error');
+            }
+        } catch (error) {
+            console.error('Error removing coupon:', error);
+            alert(error.message)
+            Swal.fire('Error', 'Failed to remove the coupon.', 'error');
+        }
+    });
+});
+
+
+
+  document.getElementById('proceedToPay').addEventListener('click', function(event) {
+      event.preventDefault();
+      const isAddress = document.getElementById("userAddresses").value
+    if(!isAddress){
+        Swal.fire({
+            title: 'Error',
+            text: 'Please Add an address .',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        }); 
+    }
+       
+          const couponCode = document.getElementById('ExCouponCode').value.trim();
+      const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked').value;
+      alert(selectedAddress)
+      const paymentMethod = document.querySelector('input[id="payment"]').checked ? 'Cash on Delivery' : 
+      document.querySelector('input[id="wallet"]').checked ? 'Wallet' : 
+      document.querySelector('input[id="paypal"]').checked ? 'Razorpay' : null;
+    const cartTotal = +document.getElementById("totalCheckoutAmount").value
+   
+const selectedElement = document.querySelector('input[name="selectedAddress"]:checked');
+if (selectedElement) {
+    const selectedAddress = selectedElement.value;
+    alert(selectedAddress);
+} else {
+    alert('No address selected!');
+}
+
     if (!selectedAddress || !paymentMethod) {
         Swal.fire({
             title: 'Error',
@@ -272,12 +357,11 @@
             const options = {
                 key: data.key_id,
                 amount: data.amount,
-                currency: "INR",
+                currency: 'INR',
                 name: "Your Store Name",
                 description: "Purchase Description",
                 order_id: data.order_id, 
                 handler: function(response) {
-                    // After successful payment verification
                     fetch('/verifyPayment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -387,8 +471,6 @@
     });
 }
 
-    
-    
     else {
         fetch('/addToOrder', {
             method: 'POST',
@@ -447,13 +529,13 @@ document.getElementById('selectCoupon').addEventListener('click', async () => {
             // Populate the modal with coupons
             couponList.innerHTML = data.coupons.map(coupon => `
                 <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
-                    <input type="radio" name="coupon" value="${coupon.couponCode}" id="coupon-${coupon.couponCode}" style="
+                    <input type="radio" name="coupon" value="${coupon?.couponCode}" id="coupon-${coupon?.couponCode}" style="
                         margin-right: 10px; 
                         transform: scale(0.8);
                         width: 14px;
                         height: 14px;
                     ">
-                    <strong>${coupon.couponCode}</strong> - ${coupon.description}
+                    <strong>${coupon?.couponCode}</strong> - ${coupon?.description}
                 </label>
             `).join('');
         } else {
@@ -496,44 +578,23 @@ document.getElementById('applyCoupon').addEventListener('click', async () => {
         const data = await response.json();
 
         if (data.success) {
+            window.location.reload()
             Swal.fire('Success', `Coupon applied: ${couponCode}`, 'success');
+            // const couponElement=document.querySelector('.checkout__total__all li:nth-child(3) span');
+            // const totalElement = document.querySelector('.checkout__total__all li:nth-child(4) span'); 
 
-            const totalElement = document.querySelector('.checkout__total__all li:nth-child(4) span'); 
-            const couponElement=document.querySelector('.checkout__total__all li:nth-child(3) span');
-            
-            totalElement.textContent = `$${data.discountedPrice}`;
-            couponElement.textContent=`$${data.discount}`;
-
-            document.getElementById('cartTotal').value = data.discountedPrice;
-
-            document.getElementById('applyCoupon').textContent = 'Remove Coupon';
-            document.getElementById('applyCoupon').id = 'removeCoupon'; 
+            // couponElement.textContent=`$${data.discount}`;
+            // totalElement.textContent = `$${data.discountedPrice}`;
+           
+            // document.getElementById('cartTotal').value = data.discountedPrice
+          
 
             document.getElementById('couponCode').style.display = 'none';
             document.getElementById('selectCoupon').style.display = 'none';
 
-            document.getElementById('removeCoupon').addEventListener('click', async () => {
-                try {
-                    const removeResponse = await fetch('/removeCoupon', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ couponCode, totalPrice })
-                    });
+           
 
-                    const removeData = await removeResponse.json();
 
-                    if (removeData.success) {
-                        Swal.fire('Success', 'Coupon removed successfully.', 'success');
-
-                        location.reload(); 
-                    } else {
-                        Swal.fire('Error', removeData.message || 'Failed to remove the coupon.', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error removing coupon:', error);
-                    Swal.fire('Error', 'Failed to remove the coupon.', 'error');
-                }
-            });
         } else {
             Swal.fire('Error', data.message || 'Invalid coupon.', 'error');
         }
@@ -542,8 +603,6 @@ document.getElementById('applyCoupon').addEventListener('click', async () => {
         Swal.fire('Error', 'Failed to apply the coupon.', 'error');
     }
 });
-
-
 
 </script>
 
