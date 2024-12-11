@@ -7,7 +7,7 @@
     <meta name="keywords" content="Male_Fashion, unica, creative, html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Male-Fashion | Template</title>
+    <title>Regalia</title>
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
@@ -90,10 +90,7 @@
             </div>
         </div>
         <div class="offcanvas__nav__option">
-            <a href="" class="search-switch"><img src="img/icon/search.png" alt=""></a>
-            <a href="#"><img src="img/icon/heart.png" alt=""></a>
-            <a href="/cart"><img src="img/icon/cart.png" alt=""> </a>
-            <div class="price">₹0.00</div>
+           
         </div>
         <div id="mobile-menu-wrap"></div>
         <div class="offcanvas__text">
@@ -117,11 +114,9 @@
                             <div class="header__top__links">
                                 <div class="header__top__links">
                                     <% if (user) { %>
-                                        <!-- If user is logged in, show clickable username and logout -->
                                         <a href="/userProfile" class="sign-in-link"><%= user.name %></a>
                                         <a href="/logout">Logout</a>
                                     <% } else { %>
-                                        <!-- If no user is logged in, show signup and login -->
                                         <a href="/signup">Sign Up</a>
                                         <a href="/login">Login</a>
                                     <% } %>
@@ -146,24 +141,8 @@
                         <ul>
                             <li class="active"><a href="/">Home</a></li>
                             <li><a href="/shop">Shop</a></li>
-                            <li><a href="#">Pages</a>
-                                <ul class="dropdown">
-                                    <li><a href="./about.html">About Us</a></li>
-                                    <li><a href="">Shop Details</a></li>
-                                    <li>
-                                        <!-- <a href="/cart">
-                                            <i class="fas fa-shopping-cart"></i>
-                                            <span id="cart-badge" class="badge bg-danger"style="width: 100px;height: 100px;"> hjj</span>
-                                        </a> -->
-                                        
-                                    </li>
-                                    
-                                    <li><a href="./checkout.html">Check Out</a></li>
-                                    <li><a href="./blog-details.html">Blog Details</a></li>
-                                </ul>
-                                
-                            </li>
-                            <li><a href="./blog.html">Blog</a></li>
+                           
+                    
                             <li><a href="./contact.html">Contacts</a></li>
                         </ul>
                     </nav>

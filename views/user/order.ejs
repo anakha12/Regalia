@@ -1,111 +1,164 @@
 <%- include("../../views/partials/user/header") %>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script> 
 <style>
-  .download-invoice-button {
-    background-color: #0a0a0a; 
+  .container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+  }
+
+  h3 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .order-card {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .order-header {
+    flex: 1 1 40%;
+    padding-right: 15px;
+    border-right: 1px solid #ddd;
+  }
+
+  .order-header h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .order-header p {
+    font-size: 14px;
+    margin: 5px 0;
+  }
+
+  .ordered-items {
+    flex: 1 1 60%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    padding-left: 15px;
+  }
+
+  .item-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background: #f9f9f9;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .product-image {
+    width: 100%;
+    height: auto;
+    max-height: 100px;
+    object-fit: cover;
+    margin-bottom: 5px;
+  }
+
+  .cancel-button, .return-button, .download-invoice-button {
+    background-color: #0a0a0a;
     color: white;
     border: none;
-    padding: 2px 10px;
-    font-size: 14px;
+    padding: 5px 10px;
+    font-size: 12px;
     cursor: pointer;
-  
     transition: background-color 0.3s ease;
-    
-}
+    margin-top: 5px;
+  }
 
+  .cancel-button:hover, .return-button:hover, .download-invoice-button:hover {
+    background-color: #333;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #ddd;
+  }
 </style>
+
 <div class="container">
-    <h3>YOUR ORDERS</h3>
+  <h3>YOUR ORDERS</h3>
 
-    <% if (orders && orders.length > 0) { %>
-      <% orders.forEach(order => { %>
-        <div class="order-card">
-          <div class="order-header">
-            <!-- Display full Order ID with reduced font size -->
-            <h4>ORDER ID: <span class="order-id"><%= order.orderId %></span></h4>
-            <p>Order Date: <%= new Date(order.invoiceDate).toLocaleDateString() %></p>
-            <p>Total Price: ₹<%= order.totalPrice.toFixed(2) %></p>
-            <p>Discount Applied: ₹<%= order.discount %></p>
-            <% if (order.couponApplied) { %>
-              <p>Coupon Applied: ₹<%= order.couponApplied.couponAmount %></p>
+  <% if (orders && orders.length > 0) { %>
+    <% orders.forEach(order => { %>
+      <div class="order-card">
+        <!-- Left side: Order details -->
+        <div class="order-header">
+          <h4>ORDER ID: <%= order.orderId %></h4>
+          <p>Order Date: <%= new Date(order.invoiceDate).toLocaleDateString() %></p>
+          <p>Total Price: ₹<%= order.totalPrice.toFixed(2) %></p>
+          <p>Discount Applied: ₹<%= order.discount %></p>
+          <p>Delivery Charge : ₹<%= order.deliveryCharge %></p>
+          <% if (order.couponApplied) { %>
+            <p>Coupon Applied: ₹<%= order.couponApplied.couponAmount %></p>
+          <% } else { %>
+            <p>Coupon Applied: ₹0</p>
+          <% } %>
+          <p class="overall-status">
+            Overall Status: 
+            <% let statuses = order.Ordereditems.map(item => item.status); %>
+            <% let priority = { 'Pending': 1, 'Placed': 2, 'Processing': 3, 'Shipped': 4, 'Out for Delivery': 5, 'Delivered': 6, 'Cancelled': 0 }; %>
+            <% let maxStatus = statuses.reduce((max, status) => priority[status] > priority[max] ? status : max, statuses[0]); %>
+            <span class="status-<%= maxStatus.toLowerCase().replace(/\s+/g, '-') %>"><%= maxStatus %></span>
+          </p>
+          <p>Payment Status: 
+            <% if (order.paymentStatus === 'Failed') { %>
+              <span class="status-failed" style="color: red; font-weight: bold;">Failed</span>
+              <button class="retry-button" onclick="retryPayment('<%= order._id %>', '<%= order.totalPrice %>')">Retry Payment</button>
             <% } else { %>
-              <p>Coupon Applied: ₹0</p>
+              <span class="status-<%= order.paymentStatus.toLowerCase() %>" style="color: rgb(10, 109, 25); font-weight: bold;"><%= order.paymentStatus %></span>
             <% } %>
+          </p>
+          <p>Payment Method : <%= order.paymentMethod %></p>
 
-            <!-- Overall order status -->
-            <p class="overall-status">
-              Overall Status: 
-              <% let statuses = order.Ordereditems.map(item => item.status); %>
-              <% let priority = { 'Pending': 1, 'Placed': 2, 'Processing': 3, 'Shipped': 4, 'Out for Delivery': 5, 'Delivered': 6, 'Cancelled': 0 }; %>
-              <% let maxStatus = statuses.reduce((max, status) => priority[status] > priority[max] ? status : max, statuses[0]); %>
-              <span class="status-<%= maxStatus.toLowerCase().replace(/\s+/g, '-') %>"><%= maxStatus %></span>
-            </p>
-            <p>Payment Status: 
-              <% if (order.paymentStatus === 'Failed') { %>
-                <span class="status-failed" style="color: red; font-weight: bold;">Failed</span>
-               
-                <button class="retry-button" onclick="retryPayment('<%= order._id %>', <%= order.totalPrice %>)">Retry Payment</button>
-  
-              <% } else { %>
-                <span class="status-<%= order.paymentStatus.toLowerCase() %>" style="color: rgb(10, 109, 25); font-weight: bold;"><%= order.paymentStatus %></span>
-              <% } %>
-            </p>
-          </div>
-         
-          <div class="ordered-items">
-            <% order.Ordereditems.forEach(item => { %>
-              <div class="item-card">
-                <!-- Display product image and name -->
-                <div class="product-info">
-                  <% if (item.images && item.images && item.images.length > 0) { %>
-                    <img src="/uploads/product-images/<%= item.images[0] %>" alt="<%= item.name %>" class="product-image">
-                  <% } else { %>
-                    <img src="/images/default-product.jpg" alt="Default Image" class="product-image">
-                  <% } %>
-                  <h3><%= item.name || 'Product Name Unavailable' %></h3>
-                </div>
-                
-                <p>Quantity: <%= item.quantity %></p>
-                
-                <p>Total Price Before Discount: ₹<%= item.totalPrice.toFixed(2) %></p>
-                <p>Discount Price: ₹<%= item.discountPrice.toFixed(2) %></p>
-                <p>Total Price : ₹<%= item.price.toFixed(2) %></p>
-                <p>
-                  Status: 
-                  <span class="status-<%= item.status.toLowerCase().replace(/\s+/g, '-') %>">
-                    <%= item.status %>
-                  </span>
-                </p>
-               
-               
-                
-
-                <p>
-                  <% if (['Pending', 'Processing', 'Placed', 'Shipped', 'Out for Delivery'].includes(item.status) && order.paymentStatus !== 'Failed') { %>
-                    <button class="cancel-button" onclick="cancelOrder('<%= order._id %>', '<%= item.product._id %>')">
-                      Cancel
-                    </button>
-                  <% } else if (['Delivered'].includes(item.status)) { %>
-                    <button class="return-button" onclick="returnOrder('<%= order._id %>', '<%= item.product._id %>')">Return</button>
-                    <button class="download-invoice-button" onclick="downloadInvoice('<%= order._id %>', '<%= item.product._id %>')">
-                      Download Invoice
-                    </button>
-                  <% } %>
-                </p>
-                
-              </div>
-            <% }) %>
-          </div>
         </div>
-        <hr>
-      <% }) %>
-    <% } else { %>
-      <p>You have no orders.</p>
-    <% } %>
-    
+
+        <!-- Right side: Ordered products -->
+        <div class="ordered-items">
+          <% order.Ordereditems.forEach(item => { %>
+            <div class="item-card">
+              <% if (item.images && item.images.length > 0) { %>
+                <img src="/uploads/product-images/<%= item.images[0] %>" alt="<%= item.name %>" class="product-image">
+              <% } else { %>
+                <img src="/images/default-product.jpg" alt="Default Image" class="product-image">
+              <% } %>
+              <h3><%= item.name || 'Product Name Unavailable' %></h3>
+              <p>Quantity: <%= item.quantity %></p>
+              <p>Price Before Discount: ₹<%= item.totalPrice.toFixed(2) %></p>
+
+              <p>Price After Discount: ₹<%= item.price.toFixed(2) %></p>
+              <p>
+                Status: 
+                <span class="status-<%= item.status.toLowerCase().replace(/\s+/g, '-') %>">
+                  <%= item.status %>
+                </span>
+              </p>
+              <% if (['Pending', 'Processing', 'Placed', 'Shipped', 'Out for Delivery'].includes(item.status) && order.paymentStatus !== 'Failed') { %>
+                <button class="cancel-button" onclick="cancelOrder('<%= order._id %>', '<%= item.product._id %>')">Cancel</button>
+              <% } else if (['Delivered'].includes(item.status)) { %>
+                <button class="return-button" onclick="returnOrder('<%= order._id %>', '<%= item.product._id %>')">Return</button>
+                <button class="download-invoice-button" onclick="downloadInvoice('<%= order._id %>', '<%= item.product._id %>')">Download Invoice</button>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p>You have no orders.</p>
+  <% } %>
 </div>
 
 <%- include("../../views/partials/user/footer") %>
+
 
 <script>
 function cancelOrder(orderId, productId) {
@@ -224,6 +277,16 @@ function downloadInvoice(orderId, productId) {
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
+.download-invoice-button{
+   background-color: #111111; 
+    color: white; 
+    border: none;
+    padding: 2px 10px;
+    
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
 
 
   .ordered-items {
@@ -304,7 +367,7 @@ function downloadInvoice(orderId, productId) {
 </style>
 <script>
   function retryPayment(orderId, amount) {
-    console.log("hi");
+  
 
     fetch('/createOrder', {
         method: 'POST',

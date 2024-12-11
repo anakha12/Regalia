@@ -50,7 +50,7 @@ const addProducts=async(req,res)=>{
                 salePrice:products.salePrice,
                 createdOn:new Date(),
                 quantity:products.quantity,
-                color:products.color,
+              
                 productImage:images,
                 status:'Available',
             });

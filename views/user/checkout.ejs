@@ -38,9 +38,9 @@
                                 <th>Product Name</th>
                                 <th>Product Image</th>
                                 <th>Price</th>
-                                <th>Offer</th> 
+                                 
                                 <th>Quantity</th>
-                                <th>Total</th>
+                                <th>Total After Offer</th>
                             </tr>
                         </thead>
                         
@@ -56,14 +56,7 @@
                                         <td><img src="/uploads/product-images/<%= item.productId.productImage && item.productId.productImage.length > 0 ? item.productId.productImage[0] : 'default-image.jpg' %>" alt="<%= item.productId.productName %>" style="width: 100px; height: auto;"></td>
                                         <td>₹<%= item.productId.regularPrice %></td>
                                         
-                                        <td>
-                                            <%const offerAmount = item.productId.regularPrice - item.totalPrice%>
-                                            <% if (offerAmount > 0) { %>
-                                                ₹<%= offerAmount.toFixed(2) %>
-                                            <% } else { %>
-                                                ₹0.00
-                                            <% } %>
-                                        </td>
+                                        
                                         
                                         <td><%= item.quantity %></td>
                                         <td>₹<%= item.totalPrice.toFixed(2) %></td>
@@ -141,6 +134,7 @@
         <ul class="checkout__total__all">
             <li>Subtotal <span>₹<%= subtotal.toFixed(2) %></span></li>
             <li>Offer <span>₹<%= offer.toFixed(2) %></span></li>
+            <li>Delivery Charge <span id="deliveryCharge">₹<%= deliveryCharge.toFixed(2) %></span></li>
             <% if (coupons) { %>
                 <li class="coupon-discount">
                     Coupon Discount (<%= coupons.couponCode %>)
@@ -149,10 +143,12 @@
                 <li >Total <span id="couponDiscountAmount">₹<%= coupons.discountedPrice.toFixed(2) %></span></li>
             <% } else { %>
                 <li class="coupon-discount">Coupon Discount <span>₹0</span></li>
+                
+
                 <li>Total <span >₹<%= cartTotal.toFixed(2) %></span></li>
             <% } %>
 
-            <input type="text" name="totalCheckoutAmount" id="totalCheckoutAmount" 
+            <input type="hidden" name="totalCheckoutAmount" id="totalCheckoutAmount" 
             value="<%= coupons ? coupons.discountedPrice : cartTotal %>">
      
             
@@ -161,24 +157,16 @@
 
        <!-- Coupon Discount -->
 <div class="cart__discount" style="margin: 20px 0; display: flex; align-items: center;">
-  
-    <!-- <input type="text" id="couponCode" placeholder="Coupon code" style="width: 60%; padding: 8px; border: 1px solid #ddd; margin-right: 10px;">
-    <button type="button" id="selectCoupon" style="padding: 10px 20px; background: #0f0f0f; color: #fff; border: none;  cursor: pointer;">
-        Coupons
-    </button>
-    <button type="button" id="applyCoupon" style="padding: 10px 20px; background: #070707; color: #fff; border: none;  cursor: pointer; margin-left: 10px;">
-        Apply
-    </button>
-    -->
+ 
 
-    <div id="couponControls">
+    <div id="couponControls" style="display: flex; align-items: center; gap: 20px;">
         <input type="text" id="ExCouponCode" value="<%= coupons?.couponCode %>" class="hidden">
         <% if (!coupons) { %>
-            <input type="text" id="couponCode" placeholder="Coupon code" style="width: 60%; padding: 8px; border: 1px solid #ddd; margin-right: 10px;">
+            <input type="text" id="couponCode" placeholder="Coupon code" style="width: 60%; padding: 8px; border: 1px solid #ddd; margin-right: 10px; ">
             <button type="button" id="selectCoupon" style="padding: 10px 20px; background: #0f0f0f; color: #fff; border: none; cursor: pointer;">
                 Coupons
             </button>
-            <button type="button" id="applyCoupon" style="padding: 10px 20px; background: #070707; color: #fff; border: none; cursor: pointer; margin-left: 10px;">
+            <button type="button" id="applyCoupon" style="padding: 10px 20px; background: #070707; color: #fff; border: none; cursor: pointer;">
                 Apply
             </button>
         <% } else { %>
@@ -272,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const couponDiscountAmount = document.getElementById('couponDiscountAmount');
            const totalPrice = parseFloat(couponDiscountAmount.textContent || 0);
-alert("before");
+
 
 const removeResponse = await fetch('/removeCoupon', {
             method: 'POST',
@@ -284,7 +272,6 @@ const removeResponse = await fetch('/removeCoupon', {
             throw new Error(`HTTP error! status: ${removeResponse.status}`);
         }
 
-        alert("AFTER");
             const removeData = await removeResponse.json();
 
             if (removeData.success) {
@@ -295,7 +282,6 @@ const removeResponse = await fetch('/removeCoupon', {
             }
         } catch (error) {
             console.error('Error removing coupon:', error);
-            alert(error.message)
             Swal.fire('Error', 'Failed to remove the coupon.', 'error');
         }
     });
@@ -316,8 +302,11 @@ const removeResponse = await fetch('/removeCoupon', {
     }
        
           const couponCode = document.getElementById('ExCouponCode').value.trim();
+            const deliveryChargeElement = document.getElementById("deliveryCharge");
+
+            const deliveryChargeValue = parseFloat(deliveryChargeElement.textContent.replace("₹", "").trim());
+
       const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked').value;
-      alert(selectedAddress)
       const paymentMethod = document.querySelector('input[id="payment"]').checked ? 'Cash on Delivery' : 
       document.querySelector('input[id="wallet"]').checked ? 'Wallet' : 
       document.querySelector('input[id="paypal"]').checked ? 'Razorpay' : null;
@@ -326,7 +315,6 @@ const removeResponse = await fetch('/removeCoupon', {
 const selectedElement = document.querySelector('input[name="selectedAddress"]:checked');
 if (selectedElement) {
     const selectedAddress = selectedElement.value;
-    alert(selectedAddress);
 } else {
     alert('No address selected!');
 }
@@ -378,7 +366,8 @@ if (selectedElement) {
                                 body: JSON.stringify({
                                     selectedAddressId: selectedAddress,
                                     paymentMethod: paymentMethod,
-                                    couponApplied: couponCode, 
+                                    couponApplied: couponCode,
+                                    deliveryCharge:deliveryChargeValue, 
                                 })
                             })
                             .then(orderResponse => orderResponse.json())
@@ -481,6 +470,7 @@ if (selectedElement) {
                 selectedAddressId: selectedAddress,
                 paymentMethod: paymentMethod,
                 couponApplied: couponCode,
+                deliveryCharge:deliveryChargeValue,
             })
         })
         .then(response => response.json())

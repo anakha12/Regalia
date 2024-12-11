@@ -80,7 +80,27 @@
                                     </div>
                                     
                                 </div>
+                                <div class="card">
+                                    <div class="card-heading">
+                                        <a data-toggle="collapse" data-target="#collapseOne">Sort Products</a>
+                                    </div>
+                                    <div id="collapseOne" class="collapse show" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            <div class="shop__sidebar__sort shop__sidebar__price"> <!-- Reusing the same class -->
+                                                <ul >
+                                                    <li><a href="/Shop?sort=aToZ" <% if (sort === 'aToZ') { %> class="active" <% } %>>A - Z</a></li>
+                                                    <li><a href="/Shop?sort=zToA" <% if (sort === 'zToA') { %> class="active" <% } %>>Z - A</a></li>
+                                                    <li><a href="/Shop?sort=priceLowHigh" <% if (sort === 'priceLowHigh') { %> class="active" <% } %>>Price: Low to High</a></li>
+                                                    <li><a href="/Shop?sort=priceHighLow" <% if (sort === 'priceHighLow') { %> class="active" <% } %>>Price: High to Low</a></li>
+                                                    <li><a href="/Shop?sort=newArrivals" <% if (sort === 'newArrivals') { %> class="active" <% } %>>New Arrivals</a></li>
 
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                
 
 
                             </div>
@@ -91,13 +111,13 @@
 
 
                 <div class="col-lg-9">
+                    
 
-
-
+                    <div class="product-grid">
                     <div class="row">
                         <% products.forEach(product => { %>
                         <div class="col-lg-4 col-md-6 col-sm-6">
-                            <a href="/shop-details/<%= product._id %>"> <!-- Ensure link is correctly set -->
+                            <a href="/shop-details/<%= product._id %>"> 
                                 <div class="product__item">
                                     <div class="product__item__pic set-bg" data-setbg="/uploads/re-image/<%= product.productImage[0] %>">
 
@@ -109,36 +129,18 @@
                                     </div>
                                     <div class="product__item__text">
                                         <h6><%= product.productName %></h6>
-                                        <!-- <h6>Piqué Biker Jacket</h6> -->
-                                        <a href="#" class="add-cart">+ Add To Cart</a>
-                                        <!-- <div class="rating">
-                                            <i class="fa fa-star-o"></i>
-                                            <i class="fa fa-star-o"></i>
-                                            <i class="fa fa-star-o"></i>
-                                            <i class="fa fa-star-o"></i>
-                                            <i class="fa fa-star-o"></i>
-                                        </div> -->
-                                        <!-- <h5>
-                                            <% if (product.salePrice) { %>
-                                                $<%= product.salePrice.toFixed(2) %>
-                                            <% } else { %>
-                                                Price not available
-                                            <% } %>
-                                        </h5> -->
+                                        <a>
+                                            <button class="add-to-cart-btn" 
+                                                onclick="addToCart('<%= product._id %>', '<%= product.productName %>', '<%= product.salePrice %>')" 
+                                                style="all: unset; color: black; cursor: pointer;">
+                                                +Add to Cart
+                                            </button>
+        
+                                          </a>
                                         
                                         <h5>₹<%= product.salePrice%></h5>
-                                        <div class="product__color__select">
-                                            <label for="pc-4">
-                                                <input type="radio" id="pc-4">
-                                            </label>
-                                            <label class="active black" for="pc-5">
-                                                <input type="radio" id="pc-5">
-                                            </label>
-                                            <label class="grey" for="pc-6">
-                                                <input type="radio" id="pc-6">
-                                            </label>
-                                        </div>
-                                        <p><%= product.description%></p>
+                                       
+                                        <!-- <p><%= product.description%></p> -->
                                     </div>
                                 </div>
                             </a>
@@ -147,18 +149,23 @@
 
                     </div> 
 
+
+                    
+                </div>
                      
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="product__pagination">
-                                <a class="active" href="#">1</a>
-                                <a href="#">2</a>
-                                <a href="#">3</a>
-                                <span>...</span>
-                                <a href="#">21</a>
+                                <% for (let i = 1; i <= totalPages; i++) { %>
+                                    <a href="/Shop?page=<%= i %>&limit=<%= 9 %>" 
+                                       class="<%= i === currentPage ? 'active' : '' %>">
+                                        <%= i %>
+                                    </a>
+                                <% } %>
                             </div>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -184,5 +191,93 @@
         });
     });
 });
+
+    </script>
+    <script>
+        async function addToCart(productId, productName, salePrice) {
+            try {
+                const quantity = 1; // Default quantity to 1, or fetch dynamically if needed
+                console.log("Button clicked. Product ID:", productId, "Product Name:", productName, "Sale Price:", salePrice);
+    
+                const response = await fetch('/addToCart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId, quantity })
+                });
+    
+                if (response.ok) {
+                    Swal.fire({
+                        title: 'Product Added to Cart!',
+                        text: `The product "${productName}" has been successfully added to your cart.`,
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonText: 'Go to Cart',
+                        cancelButtonText: 'Continue Shopping'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/cart';
+                        }
+                    });
+                } else {
+                    const errorText = await response.text();
+                    Swal.fire({
+                        title: 'Error',
+                        text: errorText,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                Swal.fire({
+                    title: 'Failed to Add to Cart',
+                    text: 'There was an issue adding the product to your cart. Please try again later.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
+    </script>
+    <script>
+const loadShop = async (req, res) => {
+    try {
+        const user = req.session.user;
+        const categories = await Category.find({ isListed: true });
+
+        const { page = 1, limit = 9 } = req.query;
+        const currentPage = parseInt(page);
+        const pageLimit = parseInt(limit);
+        const skip = (currentPage - 1) * pageLimit;
+
+        const productQuery = {
+            isBlocked: false,
+            category: { $in: categories.map(category => category._id) },
+        };
+
+        const totalProducts = await Product.countDocuments(productQuery);
+
+        let productData = await Product.find(productQuery)
+            .sort({ createdOn: -1 }) 
+            .skip(skip)
+            .limit(pageLimit);
+
+        const totalPages = Math.ceil(totalProducts / pageLimit);
+
+        const userData = user ? await User.findOne({ _id: user._id }) : null;
+
+        res.render('shop', {
+            user: userData,
+            categories,
+            products: productData,
+            selectedCategory: "",
+            currentPage,
+            totalPages,
+        });
+    } catch (error) {
+        console.log('Shop page not found', error);
+        res.status(500).send('Server error');
+    }
+};
+
 
     </script>

@@ -181,8 +181,14 @@ const Checkout = async (req, res) => {
         }, 0);
         let cartTotal=cart.items.reduce((total, item) => total + item.totalPrice, 0);
         if(coupons)cartTotal-=coupons.discount;
-        
         const offer=regularPriceTotal-cartTotal;
+        if(cartTotal<500){
+            deliveryCharge=50;
+            cartTotal+=50
+        }else{
+            deliveryCharge=0;
+        }
+       
         
         res.render('checkout', {
             user,
@@ -190,6 +196,7 @@ const Checkout = async (req, res) => {
             userAddresses: addressData ? addressData.address : [],
             subtotal: regularPriceTotal, 
             cartTotal:cartTotal,
+            deliveryCharge,
             offer,
             coupons,
         });

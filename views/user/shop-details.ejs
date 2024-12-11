@@ -93,49 +93,26 @@
                                 <i class="fa fa-star"></i>
                                 <i class="fa fa-star"></i>
                                 <i class="fa fa-star"></i>
-                                <i class="fa fa-star-o"></i>
+                                
                                 <span> - 5 Reviews</span>
                             </div>
                             <h3>₹<%=product.salePrice%> <span><%=product.regularPrice%></span></h3>
                             <p><%= product.description%></p>
-                            <div class="product__details__option">
-
-                                
-                                <div class="product__details__option__color">
-                                    <span>Color:</span>
-                                    <label class="c-1" for="sp-1">
-                                        <input type="radio" id="sp-1">
-                                    </label>
-                                    <label class="c-2" for="sp-2">
-                                        <input type="radio" id="sp-2">
-                                    </label>
-                                    <label class="c-3" for="sp-3">
-                                        <input type="radio" id="sp-3">
-                                    </label>
-                                    <label class="c-4" for="sp-4">
-                                        <input type="radio" id="sp-4">
-                                    </label>
-                                    <label class="c-9" for="sp-9">
-                                        <input type="radio" id="sp-9">
-                                    </label>
-                                </div>
-                            </div>
+                           
                             <div class="product__details__cart__option">
                                 
                                 <% if (product.quantity > 0) { %>
-                                    <!-- Show the Add to Cart button if product quantity is more than 0 -->
                                     <form id="add-to-cart-form" action="" class="add-to-cart-form" data-product-id="<%= product._id %>" method="">
                                       <input type="hidden" name="productId" value="<%= product._id %>">
                                       <div class="quantity">
                                         
-                                          <input type="number" name="quantity" value="1" min="1" max="5" step="1">
+                                          <input type="number" name="quantity" value="1" min="1" max="5" step="1"  style="width: 70px; height: 48px; font-size: 20px; padding: 5px; border: 1px solid #0f0f0f; ">
                                         
                                       </div>
                                       
                                       <button type="submit" class="primary-btn">Add to Cart</button>
                                     </form>
                                   <% } else { %>
-                                    <!-- Show the Out of Stock button if product quantity is 0 -->
                                     <button class="primary-btn" disabled>Out of Stock</button>
                                   <% } %>
                                   
@@ -166,54 +143,42 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
-                    <h3 class="related-title">Related Product</h3>
+                    <h3 class="related-title">Related Products</h3>
                 </div>
             </div>
             <div class="row">
-
-
-                <div class="col-lg-3 col-md-6 col-sm-6 col-sm-6">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="/uploads/re-image/<%= product.productImage[0] %>">
-                            <span class="label">New</span>
-                            <ul class="product__hover">
-                                <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
-                                <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
-                                <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6><%= product.productName %></h6>
-                            
-                            <a href="" class="add-cart">+ Add To Cart</a>
-                            <div class="rating">
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
+                <% relatedProducts.forEach(relatedProduct => { %>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="/shop-details/<%= relatedProduct._id %>"> 
+                        <div class="product__item">
+                            <div class="product__item__pic set-bg" data-setbg="/uploads/re-image/<%= relatedProduct.productImage[0] %>">
+                                <span class="label">New</span>
+                                <ul class="product__hover">
+                                    <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
+                                    <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
+                                    <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
+                                </ul>
                             </div>
-                            <h5>₹<%= product.salePrice%></h5>
-                            <div class="product__color__select">
-                                <label for="pc-1">
-                                    <input type="radio" id="pc-1">
-                                </label>
-                                <label class="active black" for="pc-2">
-                                    <input type="radio" id="pc-2">
-                                </label>
-                                <label class="grey" for="pc-3">
-                                    <input type="radio" id="pc-3">
-                                </label>
+                            <div class="product__item__text">
+                                <h6><%= relatedProduct.productName %></h6>
+                                <a>
+                                    <button class="add-to-cart-btn" 
+                                        onclick="addToCart('<%= product._id %>', '<%= product.productName %>', '<%= product.salePrice %>')" 
+                                        style="all: unset; color: black; cursor: pointer;">
+                                        +Add to Cart
+                                    </button>
+
+                                  </a>
+                                <h5>₹<%= relatedProduct.salePrice %></h5>
                             </div>
                         </div>
+                      </a>
                     </div>
-                </div>
-
-
-
+                <% }) %>
             </div>
         </div>
     </section>
+    
     <!-- Related Section End -->
 
 
@@ -246,7 +211,6 @@
     
     document.addEventListener('DOMContentLoaded', function () {
     const addToCartForm = document.querySelector('#add-to-cart-form');
-    console.log(addToCartForm);  // Check if form is found
     
     if (addToCartForm) {
         addToCartForm.addEventListener('submit', async function (e) {
@@ -356,4 +320,49 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 
+</script>
+<script>
+    async function addToCart(productId, productName, salePrice) {
+        try {
+            const quantity = 1; // Default quantity to 1, or fetch dynamically if needed
+            console.log("Button clicked. Product ID:", productId, "Product Name:", productName, "Sale Price:", salePrice);
+
+            const response = await fetch('/addToCart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId, quantity })
+            });
+
+            if (response.ok) {
+                Swal.fire({
+                    title: 'Product Added to Cart!',
+                    text: `The product "${productName}" has been successfully added to your cart.`,
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: 'Go to Cart',
+                    cancelButtonText: 'Continue Shopping'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/cart';
+                    }
+                });
+            } else {
+                const errorText = await response.text();
+                Swal.fire({
+                    title: 'Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            Swal.fire({
+                title: 'Failed to Add to Cart',
+                text: 'There was an issue adding the product to your cart. Please try again later.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    }
 </script>

@@ -23,8 +23,8 @@ const { log } = require('console');
 const addToOrder = async (req, res) => {
   try {
     const userId = req.session.user;
-    
-    const { selectedAddressId, paymentMethod, couponApplied } = req.body;
+  
+    const { selectedAddressId, paymentMethod, couponApplied,deliveryCharge } = req.body;
    
     let couponId = null;
     let couponAmount = null;
@@ -77,7 +77,7 @@ const addToOrder = async (req, res) => {
 
       totalPrice += price;
       finalAmount+=itemTotalPrice;
-
+      if(itemTotalPrice)
       orderedItems.push({
         product: productId._id,
         quantity,
@@ -101,31 +101,35 @@ const addToOrder = async (req, res) => {
     }
 
     const discount = finalAmount-totalPrice;
-   
-
+    if(couponAmount){
+      totalPrice=totalPrice-couponAmount;
+    }
+    if(deliveryCharge>0){
+      totalPrice+=deliveryCharge
+    }
+    
 
     if (paymentMethod === 'Wallet') {
 
       const wallet = await Wallet.findOne({ userId: userId._id });
 
-      if (!wallet || wallet.totalAmount < finalAmount) {
+      if (!wallet || wallet.totalAmount < totalPrice) {
         return res.status(400).json({
           success: false,
           message: 'Insufficient balance in wallet. Please add funds or choose another payment method.',
         });
       }
 
-      wallet.totalAmount -= finalAmount;
+      wallet.totalAmount -= totalPrice;
       wallet.transaction.push({
-        amount: finalAmount,
+        amount: totalPrice,
         description: 'Order Payment',
         type: 'debit',
       });
       await wallet.save();
     }
-    if(couponAmount){
-      totalPrice=totalPrice-couponAmount;
-    }
+  
+    
 
     if(totalPrice>1000&&paymentMethod === 'Cash on Delivery'){
       return res.status(400).json({
@@ -145,11 +149,13 @@ const addToOrder = async (req, res) => {
       status: 'Pending',
       couponApplied:couponId,
       userId,
+      deliveryCharge,
     });
     
     await newOrder.save();
-
+    
     await Cart.findOneAndUpdate({ userId }, { items: [] });
+
     if (req.session.appliedCoupon) {
       delete req.session.appliedCoupon;
     }
@@ -222,7 +228,7 @@ const cancelOrder = async (req, res) => {
         const userWallet = await Wallet.findOne({ userId: order.userId });
       if (!userWallet) {
         const newWallet = new Wallet({
-          amount: orderedItem.price,
+          amount: order.totalPrice,
           description: `Refund for canceled item: ${orderedItem.name}`,
           type: "credit",
         });
@@ -231,7 +237,7 @@ const cancelOrder = async (req, res) => {
       
       userWallet.totalAmount += orderedItem.price;
       userWallet.transaction.push({
-        amount: orderedItem.price,
+        amount: order.totalPrice,
         description: `Refund for canceled item: ${orderedItem.name}`,
         type: "credit",
       });
@@ -259,7 +265,7 @@ const cancelOrder = async (req, res) => {
      
       userWallet.totalAmount += orderedItem.price;
       userWallet.transaction.push({
-        amount: orderedItem.price-couponValue,
+        amount: order.totalPrice,
         description: `Refund for canceled item: ${orderedItem.name}`,
         type: "credit",
       });

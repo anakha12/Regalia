@@ -15,20 +15,22 @@
             flex: 1;
             min-width: 200px;
             padding: 15px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+           
+            
             text-align: center;
+        }
+        .card{
+          background-color: rgb(255, 255, 255);
         }
         .metric-card h5 {
             margin: 10px 0;
+            border: none;
         }
         .report-container {
         margin: 20px auto;
         max-width: 1200px;
         padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 8px;
+      
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         @media print {
@@ -71,6 +73,7 @@
             <p>Total Customers: <%= totalCustomers %></p>
 
             <p>Total Revenue: ₹<%= totalRevenue.toFixed(2) %></p>
+            <p>Total Delivery Charge: <%= deliveryCharge.toFixed(2) %></p>
             <p>Revenue After Discount: ₹<%= revenueAfterDiscount.toFixed(2) %></p>
           </div>
         </div>
@@ -101,10 +104,10 @@
 
       <div class="col-md-6">
         <div class="card p-3">
-          <h5>Total Disscount</h5>
+          <h5>Total Discount</h5>
           <p>Offer: ₹<%= totalDiscount.toFixed(2) %></p>
           <p>Coupon offer: ₹<%= totalCouponAmount.toFixed(2) %></p>
-
+          <p>Total Disscount: ₹<%= totalDiscountOffer.toFixed(2) %></p>
           
         </div>
       </div>
@@ -139,7 +142,8 @@
     </div>
   </div>
   <button id="downloadPdf" class="btn btn-primary ms-2">Download PDF</button>
-  
+  <a href="/admin/sales/excel?filter=<%= filter %>&startDate=<%= startDate %>&endDate=<%= endDate %>" class="btn btn-success">Download Excel</a>
+
 
   <script>
 

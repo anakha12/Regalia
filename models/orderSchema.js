@@ -61,7 +61,7 @@ const orderSchema= new mongoose.Schema({
         required: true
         },
         deliveryCharge:{
-          type:Number,
+          type:Number, 
           default:0,
         },
         paymentStatus:{
@@ -99,6 +99,10 @@ const orderSchema= new mongoose.Schema({
             default:Date.now,
             required:true
 
+        },
+        deliveryCharge:{
+          type:Number,
+          default:0,
         },
         couponApplied:{
           type:Schema.Types.ObjectId,

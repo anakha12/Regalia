@@ -60,7 +60,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <!-- <div class="row">
                             <div class="col-lg-4">
                                 <div class="mb-4">
                                     <label class="form-label">Color</label>
@@ -68,7 +68,7 @@
                                     <div id="color-error" class="error-message"></div>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                         <div class="card mb-4">
                             <div class="card-body">
                                 <div class="row gx-2">
@@ -272,11 +272,11 @@
         }
 
         // Color validation
-        const color = document.getElementsByName('color')[0].value;
-        if (color.trim() === '') {
-            displayErrorMessage('color-error', 'Color is required.');
-            isValid = false;
-        }
+        // const color = document.getElementsByName('color')[0].value;
+        // if (color.trim() === '') {
+        //     displayErrorMessage('color-error', 'Color is required.');
+        //     isValid = false;
+        // }
 
         // Category validation
         const category = document.getElementsByName('category')[0].value;

@@ -41,27 +41,65 @@ const loadShop = async (req, res) => {
     try {
         const user = req.session.user;
         const categories = await Category.find({ isListed: true });
+        const sortOption = req.query.sort;
+        const { page = 1, limit = 9 } = req.query;
+        const currentPage = parseInt(page);
+        const pageLimit = parseInt(limit);
+        const skip = (currentPage - 1) * pageLimit;
 
-       
-        let productData = await Product.find({
+        const productQuery = {
             isBlocked: false,
             category: { $in: categories.map(category => category._id) },
-           
-        });
+        };
 
-      
-        productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+        let sortQuery = {};
+        switch (sortOption) {
+            case 'priceLowHigh':
+                sortQuery = { salePrice: 1 };
+                break;
+            case 'priceHighLow':
+                sortQuery = { salePrice: -1 };
+                break;
+            case 'newArrivals':
+                sortQuery = { createdAt: -1 }; 
+                break;
+            case 'aToZ':
+                sortQuery = { productName: 1 };
+                break;
+            case 'zToA':
+                sortQuery = { productName: -1 };
+                break;
+            default:
+                sortQuery = { createdOn: -1 }; 
+        }
 
-      
+        const totalProducts = await Product.countDocuments(productQuery);
+        const productData = await Product.find(productQuery)
+            .collation({ locale: 'en', strength: 1 }) // Case-insensitive sorting
+            .sort(sortQuery)
+            .skip(skip)
+            .limit(pageLimit);
+
+        const totalPages = Math.ceil(totalProducts / pageLimit);
+
         const userData = user ? await User.findOne({ _id: user._id }) : null;
 
-       
-        res.render('shop', { user: userData, categories, products: productData,selectedCategory:"" });
+        res.render('shop', {
+            user: userData,
+            categories,
+            products: productData,
+            selectedCategory: "",
+            currentPage,
+            totalPages,
+            sort: sortOption, 
+        });
     } catch (error) {
         console.log('Shop page not found', error);
         res.status(500).send('Server error');
     }
 };
+
+
 
 const loadShopDetails = async (req, res) => {
     try {
@@ -70,14 +108,20 @@ const loadShopDetails = async (req, res) => {
 
        
         if (!product) {
-            return res.status(404).send('Product not found');
+            res.render('page-404')
+           
         }
+        const relatedProducts = await Product.find({
+            category: product.category,
+            _id: { $ne: productId }, 
+            isBlocked: false
+        }).limit(4);
 
         const categories = await Category.find({ isListed: true });
         const user = req.session.user ? await User.findOne({ _id: req.session.user._id }) : null;
 
        
-        res.render('shop-details', { user, categories, product });
+        res.render('shop-details', { user, categories, product,relatedProducts });
     } catch (error) {
         console.error('Error loading product details', error);
         res.status(500).send('Server error');
@@ -86,32 +130,51 @@ const loadShopDetails = async (req, res) => {
 
 
 const shop = async (req, res) => {
-   
     try {
-        const { category, minPrice, maxPrice } = req.query; 
-        console.log( req.query)
+        const { category, minPrice, maxPrice, page = 1, limit = 9 } = req.query;
+        console.log(req.query);
+
+        const currentPage = parseInt(page);
+        const pageLimit = parseInt(limit);
+        const skip = (currentPage - 1) * pageLimit;
+
         let filter = {};
         if (category) {
-            filter.category = category; 
+            filter.category = category;
         }
         if (minPrice || maxPrice) {
             filter.salePrice = {};
             if (minPrice) filter.salePrice.$gte = parseFloat(minPrice);
-            if (maxPrice) filter.salePrice.$lte = parseFloat(maxPrice); 
+            if (maxPrice) filter.salePrice.$lte = parseFloat(maxPrice);
         }
 
         const categories = await Category.find();
-        const products = await Product.find(filter);
+
+        const totalProducts = await Product.countDocuments(filter);
+
+        const products = await Product.find(filter)
+            .collation({ locale: 'en', strength: 2 })
+            .skip(skip)
+            .limit(pageLimit);
+
+        const totalPages = Math.ceil(totalProducts / pageLimit);
 
         const user = req.session.user || null;
 
-      
-        res.render('shop', { categories, products,user });
+        res.render('shop', {
+            categories,
+            products,
+            user,
+            sort: null,
+            totalPages,
+            currentPage,
+        });
     } catch (error) {
         console.error("Error fetching products:", error);
         res.status(500).send("An error occurred while loading the shop.");
     }
 };
+
 const searchProducts = async (req, res) => {
     const searchQuery = req.query.q || ""; 
    
@@ -255,9 +318,9 @@ const generateReferralCode = () => {
 
 const verifyOtp = async (req, res) => {
     try {
+
        
         const { otp, referralCode } = req.body;
-        console.log("Received OTP:", otp);
 
        
         if (String(otp) === String(req.session.userOtp)) {
@@ -317,20 +380,14 @@ const verifyOtp = async (req, res) => {
                 } else {
                     return res.status(400).json({ success: false, message: "Invalid referral code" });
                 }
-            } else {
-                await Wallet.create({
-                    userId: newUser._id,
-                    transaction: [],
-                    totalAmount: 0,
-                });
-            }
-
+            } 
             await newUser.save();
 
             
 
             res.json({ success: true, message: "OTP verified successfully", redirectUrl: '/login' });
         } else {
+            console.error(error)
             res.status(400).json({ success: false, message: "Invalid OTP, please try again" });
         }
     } catch (error) {
