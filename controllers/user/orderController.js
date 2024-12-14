@@ -202,7 +202,9 @@ const cancelOrder = async (req, res) => {
     const { orderId, productId } = req.body;
  
     const order = await Order.findById(orderId).populate('couponApplied');
- 
+    const totalProductsCount = order.Ordereditems.reduce((total, item) => {
+      return item.status !== 'Cancelled' ? total + item.quantity : total;
+  }, 0); console.log(totalProductsCount);
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found." });
     }
@@ -222,13 +224,37 @@ const cancelOrder = async (req, res) => {
     
 
     if (order.paymentStatus === "Success") {
-
+     
+      
+      if(totalProductsCount===1){
+        const userWallet = await Wallet.findOne({ userId: order.userId });
+        if (!userWallet) {
+          const newWallet = new Wallet({
+            amount: order.totalPrice,
+            description: `Refund for canceled item: ${orderedItem.name}`,
+            type: "credit",
+          });
+          await newWallet.save();
+        }
+        userWallet.totalAmount += order.totalPrice;
+        userWallet.transaction.push({
+        amount: order.totalPrice,
+        description: `Refund for canceled item: ${orderedItem.name}`,
+        type: "credit",
+      });
+     
+      await userWallet.save();
+      order.totalPrice=0;
+      order.couponApplied = null;
+      order.deliveryCharge=0;
+      await order.save();
+      }else{
       if(totalOrderPrice-canceledItemPrice>purchaseAmount){
 
         const userWallet = await Wallet.findOne({ userId: order.userId });
       if (!userWallet) {
         const newWallet = new Wallet({
-          amount: order.totalPrice,
+          amount: orderedItem.price,
           description: `Refund for canceled item: ${orderedItem.name}`,
           type: "credit",
         });
@@ -237,7 +263,7 @@ const cancelOrder = async (req, res) => {
       
       userWallet.totalAmount += orderedItem.price;
       userWallet.transaction.push({
-        amount: order.totalPrice,
+        amount:orderedItem.price,
         description: `Refund for canceled item: ${orderedItem.name}`,
         type: "credit",
       });
@@ -265,18 +291,19 @@ const cancelOrder = async (req, res) => {
      
       userWallet.totalAmount += orderedItem.price;
       userWallet.transaction.push({
-        amount: order.totalPrice,
+        amount: orderedItem.price,
         description: `Refund for canceled item: ${orderedItem.name}`,
         type: "credit",
       });
 
       await userWallet.save();
       }
+      order.totalPrice-=orderedItem.price;
       order.couponApplied = null;
         await order.save();
       
     }
-
+  }
     orderedItem.status = "Cancelled";
     await order.save();
 
