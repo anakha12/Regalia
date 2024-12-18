@@ -218,23 +218,28 @@ const editProduct= async(req,res)=>{
     }
 }
 
-const deleteSingleImage= async (req,res)=>{
+const deleteSingleImage = async (req, res) => {
     try {
-        const {imageNameToServer,productIdToServer}=req.body;
-        const product = await Product.findByIdAndUpdate(productIdToServer, { $pull: { productImage: imageNameToServer } });
-         const imagePath=path.join("public",'uploads','re-image',imageNameToServer);
-        if(fs.existsSync(imagePath)){
+        const { imageNameToServer, productIdToServer } = req.body;
+        const product = await Product.findByIdAndUpdate(productIdToServer, {
+            $pull: { productImage: imageNameToServer }
+        });
+        
+        const imagePath = path.join("public", 'uploads', 're-image', imageNameToServer);
+        if (fs.existsSync(imagePath)) {
             await fs.unlinkSync(imagePath);
-            console.log(`Image ${imageNameToServer} deleted successfully`)
-        }else{
+            console.log(`Image ${imageNameToServer} deleted successfully`);
+        } else {
             console.log(`Image ${imageNameToServer} not found`);
         }
-        res.send({status:true});
+
+        res.send({ status: true });
     } catch (error) {
         console.error(error);
-        res.redirect('/pageerror')
+        res.redirect('/pageerror');
     }
-}
+};
+
 
 module.exports={
     getProductAddPage,
