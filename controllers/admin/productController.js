@@ -181,7 +181,13 @@ const getEditProduct= async(req,res)=>{
 const editProduct= async(req,res)=>{
     try {
         let id=req.params.id;
+        
         const product=await Product.findOne({_id:id});
+       if(product.quantity<5){
+        product.productName=product.productName+"-limitedStock"
+       }
+       console.log(product);
+       await product;
         const data=req.body;
         const existingProduct= await Product.findOne({
             productName:data.productName,
