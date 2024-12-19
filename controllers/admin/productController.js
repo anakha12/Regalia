@@ -197,10 +197,12 @@ const editProduct = async (req, res) => {
             });
         }
 
-        // Check if no image is uploaded
-        if (!req.files || req.files.length === 0) {
+        const hasExistingImages = product.productImage && product.productImage.length > 0;
+        const uploadedImages = req.files ? req.files.map(file => file.filename) : [];
+
+        if (!hasExistingImages && uploadedImages.length === 0) {
             return res.render('edit-product', {
-                messages: { error: "Please upload at least one image." },
+                error: "Please upload at least one image.",
                 product: product,
                 categories: await Category.find({})
             });
@@ -213,7 +215,7 @@ const editProduct = async (req, res) => {
 
         const updateFields = {
             productName: data.productName,
-            description: data.description,
+            description: data.descriptionData,
             brand: data.brand,
             category: data.category,
             regularPrice: data.regularPrice,
