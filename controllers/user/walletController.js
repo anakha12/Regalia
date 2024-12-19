@@ -8,33 +8,47 @@ const bcrypt= require('bcrypt')
 
 const getWallet = async (req, res) => {
     try {
-       
         const user = req.session.user;
-
         if (!user) {
             return res.redirect('/login'); 
         }
 
         const wallet = await Wallet.findOne({ userId: user._id });
-
         if (!wallet) {
             return res.render('wallet', {
                 walletBalance: 0, 
                 transactions: [], 
                 user,
+                currentPage: 1,
+                totalPages: 1,
             });
         }
-        const sortedTransactions = wallet.transaction.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // Pagination Setup
+        const page = parseInt(req.query.page) || 1;  // Default to page 1
+        const limit = parseInt(req.query.limit) || 5;  // Default to 5 transactions per page
+        const skip = (page - 1) * limit;
+
+        // Sort and Paginate Transactions
+        const sortedTransactions = wallet.transaction
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const paginatedTransactions = sortedTransactions.slice(skip, skip + limit);
+        const totalPages = Math.ceil(sortedTransactions.length / limit);
+
         res.render('wallet', {
             walletBalance: wallet.totalAmount,
-            transactions: wallet.transaction,
+            transactions: paginatedTransactions,
             user, 
+            currentPage: page,
+            totalPages,
         });
     } catch (error) {
         console.error("Error fetching wallet data:", error);
         res.status(500).send("Unable to fetch wallet data. Please try again later.");
     }
 };
+
 
 
 const addMoneyToWallet = async (req, res) => {

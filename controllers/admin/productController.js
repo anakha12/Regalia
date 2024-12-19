@@ -172,51 +172,68 @@ const getEditProduct= async(req,res)=>{
         res.render("edit-product",{
             product:product,
             categories:category,
+            messages:''
         })
     } catch (error) {
         res.redirect("/pageerror")
     }
 }
 
-const editProduct= async(req,res)=>{
+const editProduct = async (req, res) => {
     try {
-        let id=req.params.id;
-        const product=await Product.findOne({_id:id});
-        const data=req.body;
-        const existingProduct= await Product.findOne({
-            productName:data.productName,
-            _id:{$ne:id}
-        })
-        if(existingProduct){
-            return res.status(400).json({error:"Product with this name already exists. Please try with another name"});
-        }
-        const images=[];
-        if(req.files && req.files.length>0){
-            for(let i=0;i<req.files.length;i++){
-                images.push(req.files[i].filename);
-            }
-        }
-        const updateFields={
-            productName:data.productName,
-            description:data.description,
-            brand:data.brand,
-            category:data.category,
-            regularPrice:data.regularPrice,
-            salePrice:data.salePrice,
-            quantity:data.quantity,
-            color:data.col0r,
-        }
-        if(req.files.length>0){
-            updateFields.$push={productImage:{$each:images}};
-        }
-        await Product.findByIdAndUpdate(id,updateFields,{new:true});
-        res.redirect('/admin/products');
+        let id = req.params.id;
+        const product = await Product.findOne({ _id: id });
+        const data = req.body;
+        const existingProduct = await Product.findOne({
+            productName: data.productName,
+            _id: { $ne: id }
+        });
 
+        if (existingProduct) {
+            return res.render('edit-product', {
+                error: "Product with this name already exists. Please try with another name",
+                product: product,
+                categories: await Category.find({})
+            });
+        }
+
+        // Check if no image is uploaded
+        if (!req.files || req.files.length === 0) {
+            return res.render('edit-product', {
+                messages: { error: "Please upload at least one image." },
+                product: product,
+                categories: await Category.find({})
+            });
+        }
+
+        const images = [];
+        for (let i = 0; i < req.files.length; i++) {
+            images.push(req.files[i].filename);
+        }
+
+        const updateFields = {
+            productName: data.productName,
+            description: data.description,
+            brand: data.brand,
+            category: data.category,
+            regularPrice: data.regularPrice,
+            salePrice: data.salePrice,
+            quantity: data.quantity,
+            color: data.color, // fixed typo from 'col0r' to 'color'
+        };
+
+        // Push images if any are uploaded
+        if (req.files.length > 0) {
+            updateFields.$push = { productImage: { $each: images } };
+        }
+
+        await Product.findByIdAndUpdate(id, updateFields, { new: true });
+        res.redirect('/admin/products');
     } catch (error) {
         console.error(error);
         res.redirect('/pageerror');
     }
-}
+};
 
 const deleteSingleImage = async (req, res) => {
     try {
