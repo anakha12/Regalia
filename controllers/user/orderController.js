@@ -170,7 +170,6 @@ const addToOrder = async (req, res) => {
   }
 };
 
-
 const getOrders = async (req, res) => {
   try {
     const user = req.session.user;
@@ -179,22 +178,42 @@ const getOrders = async (req, res) => {
       return res.redirect('/login');
     }
 
+    // Pagination setup
+    const page = parseInt(req.query.page) || 1; // Current page
+    const limit = parseInt(req.query.limit) || 5; // Orders per page
+    const skip = (page - 1) * limit;
+
+    // Fetch total orders count
+    const totalOrders = await Order.countDocuments({ userId: user });
+
+    // Fetch paginated orders
     const orders = await Order.find({ userId: user })
       .populate('address')
       .populate({
         path: 'Ordereditems.product',
         select: 'name images'
       })
-       .populate('couponApplied')
-       .sort({ createdOn: -1 })
+      .populate('couponApplied')
+      .sort({ createdOn: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean();
 
-    res.render('order', { orders, user });
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    // Render the view with pagination data
+    res.render('order', {
+      orders,
+      user,
+      currentPage: page,
+      totalPages,
+    });
   } catch (error) {
     console.error("Error fetching orders:", error);
     res.status(500).send("Unable to fetch orders. Please try again later.");
   }
 };
+
 
 
 const cancelOrder = async (req, res) => {

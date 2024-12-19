@@ -156,7 +156,22 @@
     <p>You have no orders.</p>
   <% } %>
 </div>
-
+<div class="row">
+  <div class="col-lg-12">
+      <div class="product__pagination">
+          <% if (totalPages > 1) { %>
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                  <a href="/order?page=<%= i %>&limit=4" 
+                     class="<%= i === currentPage ? 'active' : '' %>">
+                      <%= i %>
+                  </a>
+              <% } %>
+          <% } %>
+      </div>
+  </div>
+</div>
+<br>
+<br>
 <%- include("../../views/partials/user/footer") %>
 
 

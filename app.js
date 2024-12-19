@@ -14,6 +14,7 @@ const Razorpay = require("razorpay");
 db();
 
 
+
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(session({
@@ -29,6 +30,10 @@ app.use(session({
 }));
 
 app.use(flash());
+app.use((req, res, next) => {
+    res.locals.messages = req.flash();
+    next();
+});
 app.use(passport.initialize());
 app.use(passport.session())
 

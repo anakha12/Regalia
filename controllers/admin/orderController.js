@@ -3,21 +3,36 @@ const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema");
 const Wallet = require("../../models/walletSchema");
 
-
 const getAllOrders = async (req, res) => {
-    try {
-      const orders = await Order.find()
-        .populate('userId', 'email') 
-        .populate('Ordereditems.product', 'productName totalPrice images') 
-        .populate('address')
-        .exec();
+  try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = 5; 
+      const skip = (page - 1) * limit; 
 
-      res.render('order-admin', { orders ,user: req.user});
-    } catch (error) {
+      const totalOrders = await Order.countDocuments();
+
+      const orders = await Order.find()
+          .populate('userId', 'email') 
+          .populate('Ordereditems.product', 'productName totalPrice images') 
+          .populate('address')
+          .skip(skip) 
+          .limit(limit) 
+          .exec();
+
+      const totalPages = Math.ceil(totalOrders / limit);
+
+      res.render('order-admin', { 
+          orders, 
+          user: req.user, 
+          currentPage: page, 
+          totalPages 
+      });
+  } catch (error) {
       console.error('Error fetching orders:', error.message);
       res.status(500).send('Internal Server Error');
-    }
-  };
+  }
+};
+
   
   const updateOrderStatus = async (req, res) => {
     const { orderId, productId, newStatus } = req.body;
@@ -115,11 +130,7 @@ const cancelOrder = async (req, res) => {
             product.quantity += orderedItem.quantity;
             await product.save();
         }
-        // order.totalPrice -= orderedItem.totalPrice; 
-        // order.finalAmount = order.totalPrice - order.discount;
-
-        // await order.save();
-
+        
         res.json({ success: true, message: "Product has been cancelled in the order", updatedOrder: order });
     } catch (error) {
         console.error("Error cancelling product:", error);

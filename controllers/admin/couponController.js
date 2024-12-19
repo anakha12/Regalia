@@ -5,13 +5,29 @@ const Coupon = require("../../models/couponSchema");
 
 const getCoupon = async (req, res) => {
     try {
-        const coupons = await Coupon.find(); 
-        res.render('coupon', { coupons }); 
+        const page = parseInt(req.query.page) || 1; 
+        const limit = 5; 
+        const skip = (page - 1) * limit; 
+
+        const totalCoupons = await Coupon.countDocuments();
+
+        const coupons = await Coupon.find()
+            .skip(skip)
+            .limit(limit);
+
+        const totalPages = Math.ceil(totalCoupons / limit);
+
+        res.render('coupon', { 
+            coupons, 
+            currentPage: page, 
+            totalPages 
+        });
     } catch (error) {
         console.error('Error fetching coupons:', error);
         res.status(500).send('Internal Server Error');
     }
 };
+
 const getAddCoupon = async (req, res) => {
     try {
        
@@ -40,6 +56,13 @@ const postAddCoupon = async (req, res) => {
                     message: `Coupon with code "${couponData.code}" already exists.` 
                 });
             }
+            console.log(couponData.amount,couponData.minPurchase)
+            if(couponData.amount>couponData.minPurchase){
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Coupon amount should be less than purchase amount` 
+                });
+            }
     
             const coupon = new Coupon({
                 couponCode: couponData.code,
@@ -48,7 +71,6 @@ const postAddCoupon = async (req, res) => {
                 couponAmount: couponData.amount,
                 purchaseAmount: couponData.minPurchase,
                 expirationDate: couponData.expiryDate,
-                maxDiscount: couponData.maxDiscount || null,
                 totalLimit: couponData.totalLimit || null,
                 perUserLimit: couponData.perUserLimit || null,
             });

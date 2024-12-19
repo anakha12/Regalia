@@ -74,7 +74,8 @@
                                 <div class="row gx-2">
                                     <div class="col-sm-6 mb-3">
                                         <label class="form-label">Category</label>
-                                        <select class="form-select border" style="width: 150px;" name="category">
+                                        <select class="form-select border" style="width: 150px;" name="category" required>
+                                            <option value="" disabled selected>Select a category</option>
                                             <% for (let i = 0; i < cat.length; i++) { %>
                                                 <option value="<%= cat[i].name %>">
                                                     <%= cat[i].name %>
@@ -86,6 +87,7 @@
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="card mb-2">
                             <div class="card-header">
                                 <h4>Choose images</h4>
@@ -271,14 +273,7 @@
             isValid = false;
         }
 
-        // Color validation
-        // const color = document.getElementsByName('color')[0].value;
-        // if (color.trim() === '') {
-        //     displayErrorMessage('color-error', 'Color is required.');
-        //     isValid = false;
-        // }
-
-        // Category validation
+       
         const category = document.getElementsByName('category')[0].value;
         if (category.trim() === '') {
             displayErrorMessage('category-error', 'Please select a category.');

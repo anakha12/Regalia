@@ -1,6 +1,11 @@
 <%- include("../../views/partials/admin/header") %>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    .error-message {
+      color: red;
+    }
+</style>
 
 <div class="container mt-5">
     <div class="card shadow-lg">
@@ -8,55 +13,71 @@
             <h2 class="content-title">Add Coupons</h2>
         </div>
         <div class="card-body">
-            <form id="couponForm">
+            <form onsubmit=" handleFormSubmit(event)">
                 <div id="couponContainer">
                     <div class="coupon-fields">
-                        <h4 class="text-secondary">Coupon #1</h4>
+                        <h4 class="text-secondary">Coupon</h4>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <input type="text" id="code1" name="coupons[0][code]" class="form-control" placeholder="Enter coupon code" required>
+                                <label for="coupon_code" class="form-label">Coupon Code</label>
+                                <input type="text" id="code1" name="coupon_code" class="form-control" placeholder="Enter coupon code" >
+                                <div id="coupon_code-error" class="error-message"></div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <select id="paymentType1" name="coupons[0][paymentType]" class="form-control" required>
-                                    
+                                <label for="coupon_paymentType" class="form-label">Payment Type</label>
+                                <select id="paymentType1" name="coupon_paymentType" class="form-control" >
                                     <option value="fixed">Amount</option>
                                 </select>
+                                <div id="coupon_paymentType-error" class="error-message"></div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <input type="number" id="amount1" name="coupons[0][amount]" class="form-control" placeholder="Enter coupon amount" required>
+                                <label for="coupon_amount" class="form-label">Coupon Amount</label>
+                                <input type="number" id="amount1" name="coupon_amount" class="form-control" placeholder="Enter coupon amount" >
+                                <div id="coupon_amount-error" class="error-message"></div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <textarea id="description1" name="coupons[0][description]" class="form-control" placeholder="Enter description" required></textarea>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input type="number" id="totalLimit1" name="coupons[0][totalLimit]" class="form-control" placeholder="Enter total usage limit" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="number" id="perUserLimit1" name="coupons[0][perUserLimit]" class="form-control" placeholder="Enter per user limit" required>
+                                <label for="coupon_description" class="form-label">Description</label>
+                                <textarea id="description1" name="coupon_description" class="form-control" placeholder="Enter description" ></textarea>
+                                <div id="coupon_description-error" class="error-message"></div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <input type="number" id="minPurchase1" name="coupons[0][minPurchase]" class="form-control" placeholder="Enter minimum purchase amount" required>
+                                <label for="coupon_totalLimit" class="form-label">Total Usage Limit</label>
+                                <input type="number" id="totalLimit1" name="coupon_totalLimit" class="form-control" placeholder="Enter total usage limit" >
+                                <div id="coupon_totalLimit-error" class="error-message"></div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <input type="number" id="maxDiscount1" name="coupons[0][maxDiscount]" class="form-control" placeholder="Enter maximum discount (optional)">
+                                <label for="coupon_perUserLimit" class="form-label">Per User Limit</label>
+                                <input type="number" id="perUserLimit1" name="coupon_perUserLimit" class="form-control" placeholder="Enter per user limit" >
+                                <div id="coupon_perUserLimit-error" class="error-message"></div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <input type="date" id="expiryDate1" name="coupons[0][expiryDate]" class="form-control" required>
+                                <label for="coupon_minPurchase" class="form-label">Minimum Purchase</label>
+                                <input type="number" id="minPurchase1" name="coupon_minPurchase" class="form-control" placeholder="Enter minimum purchase amount" >
+                                <div id="coupon_minPurchase-error" class="error-message"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="coupon_maxDiscount" class="form-label">Maximum Discount</label>
+                                <input type="number" id="maxDiscount1" name="coupon_maxDiscount" class="form-control" placeholder="Enter maximum discount (optional)">
+                                <div id="coupon_maxDiscount-error" class="error-message"></div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="coupon_expiryDate" class="form-label">Expiry Date</label>
+                                <input type="date" id="expiryDate1" name="coupon_expiryDate" class="form-control" >
+                                <div id="coupon_expiryDate-error" class="error-message"></div>
                             </div>
                         </div>
                         <hr>
                     </div>
                 </div>
                 <div class="d-flex justify-content-between">
-                    
                     <button type="submit" class="btn btn-primary" id="submitCoupons">Submit Coupons</button>
                 </div>
             </form>
@@ -65,57 +86,33 @@
 </div>
 
 <script>
-
-    document.getElementById('couponForm').addEventListener('submit', function (e) {
-    e.preventDefault(); 
-
-    const couponsData = [];
-    const couponFields = document.querySelectorAll('.coupon-fields');
-    let isValid = true;
-
-    const errorMessages = document.querySelectorAll('.error-message');
-    errorMessages.forEach(error => error.remove());
-
-    couponFields.forEach((couponField, index) => {
-        const coupon = {
-            code: couponField.querySelector(`#code${index + 1}`).value.trim(), 
-            paymentType: couponField.querySelector(`#paymentType${index + 1}`).value,
-            amount: couponField.querySelector(`#amount${index + 1}`).value,
-            description: couponField.querySelector(`#description${index + 1}`).value.trim(),
-            totalLimit: couponField.querySelector(`#totalLimit${index + 1}`).value,
-            perUserLimit: couponField.querySelector(`#perUserLimit${index + 1}`).value,
-            minPurchase: couponField.querySelector(`#minPurchase${index + 1}`).value,
-            maxDiscount: couponField.querySelector(`#maxDiscount${index + 1}`).value,
-            expiryDate: couponField.querySelector(`#expiryDate${index + 1}`).value
-        };
-
-        if (!coupon.code) {
-            showError(couponField.querySelector(`#code${index + 1}`), 'Coupon Code is required!');
-            isValid = false;
-        }
-
-        if (isNaN(coupon.amount) || coupon.amount <= 0) {
-            showError(couponField.querySelector(`#amount${index + 1}`), 'Coupon Amount should be a valid number!');
-            isValid = false;
-        }
-
-        if (!coupon.description) {
-            showError(couponField.querySelector(`#description${index + 1}`), 'Description is required!');
-            isValid = false;
-        }
-
-        if (!coupon.expiryDate) {
-            showError(couponField.querySelector(`#expiryDate${index + 1}`), 'Expiry Date is required!');
-            isValid = false;
-        }
-
-        if (isValid) {
-            couponsData.push(coupon);
-        }
-    });
-
-    if (isValid) {
+   
+    function handleFormSubmit(event) {
        
+        event.preventDefault();
+        if (!validationForm()) {
+            return; 
+        }
+
+        const couponsData = [];
+        const couponFields = document.querySelectorAll('.coupon-fields');
+        couponFields.forEach((couponField, index) => {
+            const coupon = {
+                code: document.getElementsByName('coupon_code')[index].value.trim(),
+                paymentType: document.getElementsByName('coupon_paymentType')[index].value,
+                amount: document.getElementsByName('coupon_amount')[index].value.trim(),
+                description: document.getElementsByName('coupon_description')[index].value.trim(),
+                totalLimit: document.getElementsByName('coupon_totalLimit')[index].value.trim(),
+                perUserLimit: document.getElementsByName('coupon_perUserLimit')[index].value.trim(),
+                minPurchase: document.getElementsByName('coupon_minPurchase')[index].value.trim(),
+                maxDiscount: document.getElementsByName('coupon_maxDiscount')[index].value.trim(),
+                expiryDate: document.getElementsByName('coupon_expiryDate')[index].value.trim()
+            
+            };
+
+            couponsData.push(coupon);
+        });
+
         fetch('/admin/addCoupon', {
             method: 'POST',
             headers: {
@@ -125,25 +122,15 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-               
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Coupon Added Successfully!',
-                    text: 'Your coupon has been added.',
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-            } else {
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: data.message || 'An error occurred while adding the coupon.',
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-            }
+            Swal.fire({
+                icon: 'success',
+                title: 'Coupon Added Successfully!',
+                text: 'Your coupon has been added.',
+                timer: 3000,
+                showConfirmButton: false
+            }).then(() => {
+        window.location.reload(); 
+    });
         })
         .catch(error => {
             Swal.fire({
@@ -155,16 +142,74 @@
             });
         });
     }
-});
 
-function showError(inputElement, message) {
+    function validationForm() {
+        clearErrorMessage();
+        let isValid = true;
 
-    const errorMessage = document.createElement('div');
-    errorMessage.classList.add('error-message', 'text-danger');
-    errorMessage.textContent = message;
-    inputElement.classList.add('is-invalid'); 
-    inputElement.parentNode.appendChild(errorMessage);
+        const couponCode = document.getElementsByName("coupon_code")[0].value.trim();
+        const couponAmount = document.getElementsByName("coupon_amount")[0].value.trim();
+        const couponDescription = document.getElementsByName("coupon_description")[0].value.trim();
+        const couponTotalLimit = document.getElementsByName("coupon_totalLimit")[0].value.trim();
+        const couponPerUserLimit = document.getElementsByName("coupon_perUserLimit")[0].value.trim();
+        const couponMinPurchase = document.getElementsByName("coupon_minPurchase")[0].value.trim();
+        const couponMaxDiscount = document.getElementsByName("coupon_maxDiscount")[0].value.trim();
+        const couponExpiryDate = document.getElementsByName("coupon_expiryDate")[0].value.trim();
+        if (couponCode === '') {
+            displayErrorMessage("coupon_code-error", "Coupon Code is required!");
+            isValid = false;
+        }
 
-}
+        if (isNaN(couponAmount) || couponAmount <= 0) {
+            displayErrorMessage("coupon_amount-error", "Coupon Amount should be a valid number!");
+            isValid = false;
+        }
 
+        if (couponDescription === '') {
+            displayErrorMessage("coupon_description-error", "Description is required!");
+            isValid = false;
+        }
+
+        if (couponTotalLimit === '') {
+            displayErrorMessage("coupon_totalLimit-error", "Total Usage Limit is required!");
+            isValid = false;
+        }
+
+        if (couponPerUserLimit === '') {
+            displayErrorMessage("coupon_perUserLimit-error", "Per User Limit is required!");
+            isValid = false;
+        }
+
+        if (couponMinPurchase === '') {
+            displayErrorMessage("coupon_minPurchase-error", "Minimum Purchase is required!");
+            isValid = false;
+        }
+
+        if (couponMaxDiscount && isNaN(couponMaxDiscount)) {
+            displayErrorMessage("coupon_maxDiscount-error", "Maximum Discount should be a valid number!");
+            isValid = false;
+        }
+
+        if (couponExpiryDate === '') {
+            displayErrorMessage("coupon_expiryDate-error", "Expiry Date is required!");
+            isValid = false;
+        }
+        if (couponMinPurchase !== '' && couponAmount !== '' && parseFloat(couponMinPurchase) <= parseFloat(couponAmount)) {
+        displayErrorMessage("coupon_minPurchase-error", "Minimum Purchase amount should be greater than Coupon Amount!");
+        isValid = false;
+    }
+
+        return isValid;
+    }
+
+    function displayErrorMessage(elementId, message) {
+        let errorElement = document.getElementById(elementId);
+        errorElement.innerHTML = message;
+      
+    }
+
+    function clearErrorMessage() {
+        const errorMessages = document.querySelectorAll('.error-message');
+        errorMessages.forEach(error => error.innerHTML = '');
+    }
 </script>
