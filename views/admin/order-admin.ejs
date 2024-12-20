@@ -25,26 +25,32 @@
         <tbody>
             <% orders.forEach(order => { %>
                 <% order.Ordereditems.forEach(item => { %>
-                <tr>
+                  <tr>
                     <td><%= order.orderId %></td>
                     <td><%= order.userId.email %></td>
-                    <td><%= item.totalPrice%></td>
-                      
+                    <td><%= item.totalPrice %></td>
                     <td><%= item.product.productName %></td>
                     <td><%= item.quantity %></td>
                     <td id="item-status-<%= item._id %>"><%= item.status %></td>
                     <td>
-                        <button class="btn btn-success btn-sm" onclick="updateItemStatus('<%= order._id %>', '<%= item.product._id %>', '<%= item._id %>')">Update Item Status</button>
+                      <% if (item.status !== "Cancelled") { %>
+                        <button class="btn btn-success btn-sm" 
+                          onclick="updateItemStatus('<%= order._id %>', '<%= item.product._id %>', '<%= item._id %>')">
+                          Update Item Status
+                        </button>
+              
+                        <button class="btn btn-danger btn-sm" 
+                          onclick="cancelOrder('<%= order._id %>','<%= item.product._id %>','<%= item.quantity %>')">
+                          Cancel Order
+                        </button>
+                      <% } %>
                     </td>
-
-                    <td>
-                        
-                        <button class="btn btn-danger btn-sm" onclick="cancelOrder('<%= order._id %>','<%= item.product._id %>','<%= item.quantity %>')">Cancel Order</button>
-                    </td>
-                    
-                </tr>
+                  </tr>
                 <% }) %>
-            <% }) %>
+              <% }) %>
+              
+
+
         </tbody>
     </table>
 </div>

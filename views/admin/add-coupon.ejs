@@ -155,6 +155,7 @@
         const couponMinPurchase = document.getElementsByName("coupon_minPurchase")[0].value.trim();
         const couponMaxDiscount = document.getElementsByName("coupon_maxDiscount")[0].value.trim();
         const couponExpiryDate = document.getElementsByName("coupon_expiryDate")[0].value.trim();
+        const today = new Date().toISOString().split("T")[0];
         if (couponCode === '') {
             displayErrorMessage("coupon_code-error", "Coupon Code is required!");
             isValid = false;
@@ -189,11 +190,13 @@
             displayErrorMessage("coupon_maxDiscount-error", "Maximum Discount should be a valid number!");
             isValid = false;
         }
-
         if (couponExpiryDate === '') {
-            displayErrorMessage("coupon_expiryDate-error", "Expiry Date is required!");
-            isValid = false;
-        }
+        displayErrorMessage("coupon_expiryDate-error", "Expiry Date is required!");
+        isValid = false;
+    } else if (couponExpiryDate < today) {
+        displayErrorMessage("coupon_expiryDate-error", "Invalid Expiry Date! Date cannot be in the past.");
+        isValid = false;
+    }
         if (couponMinPurchase !== '' && couponAmount !== '' && parseFloat(couponMinPurchase) <= parseFloat(couponAmount)) {
         displayErrorMessage("coupon_minPurchase-error", "Minimum Purchase amount should be greater than Coupon Amount!");
         isValid = false;
