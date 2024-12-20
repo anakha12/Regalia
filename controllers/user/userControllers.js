@@ -41,6 +41,7 @@ const loadShop = async (req, res) => {
     try {
         const user = req.session.user;
         const categories = await Category.find({ isListed: true });
+       
         const sortOption = req.query.sort;
         const { page = 1, limit = 9 } = req.query;
         const currentPage = parseInt(page);
@@ -75,7 +76,7 @@ const loadShop = async (req, res) => {
 
         const totalProducts = await Product.countDocuments(productQuery);
         const productData = await Product.find(productQuery)
-            .collation({ locale: 'en', strength: 1 }) // Case-insensitive sorting
+            .collation({ locale: 'en', strength: 1 }) 
             .sort(sortQuery)
             .skip(skip)
             .limit(pageLimit);
@@ -102,26 +103,30 @@ const loadShop = async (req, res) => {
 
 
 const loadShopDetails = async (req, res) => {
+    const user = req.session.user;
+    const userData = user ? await User.findOne({ _id: user._id }) : null;
     try {
         const productId = req.params.productId;  
-        const product = await Product.findOne({ _id: productId, isBlocked: false });
 
-       
-        if (!product) {
-            res.render('page-404')
-           
+        const product = await Product.findOne({ _id: productId, isBlocked: false })
+            .populate('category'); 
+
+        if (!product || !product.category.isListed) {
+            return res.render('notfound',{ user: userData})
         }
+
         const relatedProducts = await Product.find({
-            category: product.category,
+            category: product.category._id,
             _id: { $ne: productId }, 
             isBlocked: false
         }).limit(4);
 
         const categories = await Category.find({ isListed: true });
+
         const user = req.session.user ? await User.findOne({ _id: req.session.user._id }) : null;
 
-       
-        res.render('shop-details', { user, categories, product,relatedProducts });
+        res.render('shop-details', { user, categories, product, relatedProducts });
+
     } catch (error) {
         console.error('Error loading product details', error);
         res.status(500).send('Server error');
@@ -132,7 +137,7 @@ const loadShopDetails = async (req, res) => {
 const shop = async (req, res) => {
     try {
         const { category, minPrice, maxPrice, page = 1, limit = 9 } = req.query;
-        console.log(req.query);
+       
 
         const currentPage = parseInt(page);
         const pageLimit = parseInt(limit);
@@ -140,15 +145,20 @@ const shop = async (req, res) => {
 
         let filter = {};
         if (category) {
+            const validCategory = await Category.findOne({ _id: category, isListed: true });
+            if (!validCategory) {
+                return res.render('notfound',{ user: userData})
+            }
             filter.category = category;
         }
+        
         if (minPrice || maxPrice) {
             filter.salePrice = {};
             if (minPrice) filter.salePrice.$gte = parseFloat(minPrice);
             if (maxPrice) filter.salePrice.$lte = parseFloat(maxPrice);
         }
 
-        const categories = await Category.find();
+        const categories = await Category.find({ isListed: true });
 
         const totalProducts = await Product.countDocuments(filter);
 

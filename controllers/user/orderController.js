@@ -43,6 +43,17 @@ const addToOrder = async (req, res) => {
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ message: 'Your cart is empty.' });
     }
+     const invalidItems = cart.items.filter(item => {
+            const product = item.productId;
+            return !product || product.isBlocked || !product.category.isListed;
+        });
+
+       
+        if (invalidItems.length > 0) {
+            return res.status(400).json({
+                message: 'Some products or categories in your cart are no longer available.'
+            });
+        }
 
     const addressData = await Address.findOne(
       { userId, 'address._id': selectedAddressId },
@@ -178,8 +189,7 @@ const getOrders = async (req, res) => {
       return res.redirect('/login');
     }
 
-    // Pagination setup
-    const page = parseInt(req.query.page) || 1; // Current page
+    const page = parseInt(req.query.page) || 1; 
     const limit = parseInt(req.query.limit) || 5; // Orders per page
     const skip = (page - 1) * limit;
 

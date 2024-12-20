@@ -239,45 +239,6 @@
         }
     </script>
     <script>
-const loadShop = async (req, res) => {
-    try {
-        const user = req.session.user;
-        const categories = await Category.find({ isListed: true });
-
-        const { page = 1, limit = 9 } = req.query;
-        const currentPage = parseInt(page);
-        const pageLimit = parseInt(limit);
-        const skip = (currentPage - 1) * pageLimit;
-
-        const productQuery = {
-            isBlocked: false,
-            category: { $in: categories.map(category => category._id) },
-        };
-
-        const totalProducts = await Product.countDocuments(productQuery);
-
-        let productData = await Product.find(productQuery)
-            .sort({ createdOn: -1 }) 
-            .skip(skip)
-            .limit(pageLimit);
-
-        const totalPages = Math.ceil(totalProducts / pageLimit);
-
-        const userData = user ? await User.findOne({ _id: user._id }) : null;
-
-        res.render('shop', {
-            user: userData,
-            categories,
-            products: productData,
-            selectedCategory: "",
-            currentPage,
-            totalPages,
-        });
-    } catch (error) {
-        console.log('Shop page not found', error);
-        res.status(500).send('Server error');
-    }
-};
 
 
     </script>

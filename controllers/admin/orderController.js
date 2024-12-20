@@ -15,6 +15,7 @@ const getAllOrders = async (req, res) => {
           .populate('userId', 'email') 
           .populate('Ordereditems.product', 'productName totalPrice images') 
           .populate('address')
+          .sort({ createdOn: -1 })
           .skip(skip) 
           .limit(limit) 
           .exec();

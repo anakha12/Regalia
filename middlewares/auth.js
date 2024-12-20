@@ -2,28 +2,30 @@ const mongoose = require('mongoose');
 const User = require('../models/userSchema');
 
 const userAuth = async (req, res, next) => {
-   
-
     if (req.session.user) {
         try {
             const user = await User.findById(req.session.user);
-            if (user && !user.isBlocked) {
-               
-                req.user = user;  
+
+            if (user) {
+                if (user.isBlocked) {
+                    req.session.destroy(); 
+                    
+                    return res.render('login',{message:"User is Blocked by admin"})
+                }
+
+                req.user = user;
                 return next(); 
-            } else {
-                
-                return res.status(403).send('Access denied: User is blocked');
             }
         } catch (error) {
             console.error('Error in user auth middleware:', error);
             return res.status(500).send("Internal server error");
         }
-    } else {
-       
-        return res.redirect('/login');
     }
+    
+   
+    return res.redirect('/login')
 };
+
 
 const adminAuth = async (req, res, next) => {
     

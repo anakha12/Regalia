@@ -100,115 +100,58 @@
 </head>
 <body>
 
-<div class="otp-container">
-    <h2>OTP Verification</h2>
-    <p>Please enter the OTP sent to your phone</p>
-    
-    <form id="otpForm" action="/verify-otp" method="POST" onsubmit="return validateOtpForm()">
-        <input type="text" id="otp" name="otp" placeholder="Enter OTP" maxlength="6" required />
-        <input type="hidden" id="referralCode" name="referralCode" value="<%= referralCode %>" />
-        <div class="timer">Time remaining: <span id="countdown">60</span> seconds</div>
+    <div class="otp-container">
+        <h2>OTP Verification</h2>
+        <p>Please enter the OTP sent to your phone</p>
         
-        <button id="verifyBtn" type="submit" class="v">Verify OTP</button>
-    </form>
+        <form id="otpForm" action="/verify-otp" method="POST" onsubmit="return validateOtpForm()">
+            <input type="text" id="otp" name="otp" placeholder="Enter OTP" maxlength="6" required />
+            <input type="hidden" id="referralCode" name="referralCode" value="<%= referralCode %>" />
+            <div class="timer">Time remaining: <span id="countdown">60</span> seconds</div>
+            
+            <button id="verifyBtn" type="submit" class="v">Verify OTP</button>
+        </form>
+        
+        <button id="resendOtp" type="button" class="btn btn-secondary">Resend OTP</button>
+    </div>
     
-    <button id="resendOtp" type="button" class="btn btn-secondary" onclick="resendOtp()">Resend OTP</button>
-
-</div>
 
 <script>
-    let timer;
-    let timeLeft = 60;
-    const countdownElement = document.getElementById('countdown');
-    const resendElement = document.getElementById('resendOtp');
-    const verifyButton = document.getElementById('verifyBtn');
-    const otpForm = document.getElementById('otpForm');
+ let timer;  
+let timeLeft = 60;  
+const countdownElement = document.getElementById('countdown');  
+const resendElement = document.getElementById('resendOtp');  
+const verifyButton = document.getElementById('verifyBtn');  
+const otpForm = document.getElementById('otpForm');
 
-    function startTimer() {
-        timer = setInterval(() => {
-            timeLeft--;
-            countdownElement.textContent = timeLeft;
+function startTimer() {
+    clearInterval(timer);  // Clear any existing timer
+    timeLeft = 60;  // Reset time
+    countdownElement.textContent = timeLeft;  
+    resendElement.style.display = 'none';  // Hide resend button
+    verifyButton.disabled = false;
 
-            if (timeLeft === 0) {
-                clearInterval(timer);
-                resendElement.style.display = 'block';
-                verifyButton.disabled = true;
-            }
-        }, 1000);
-    }
-    
-    resendElement.style.display = 'none';
-    
-    startTimer();
-
-    // Resend OTP logic
-    resendElement.addEventListener('click', () => {
-        alert('OTP resent!');
-        timeLeft = 60;
+    timer = setInterval(() => {
+        timeLeft--;
         countdownElement.textContent = timeLeft;
-        resendElement.style.display = 'none';
-        verifyButton.disabled = false;
-        startTimer();
-    });
 
-    // Form submission handling
-    otpForm.addEventListener('submit', (event) => {
-        const otp = document.getElementById('otp').value;
-        if (otp.length !== 6) {
-            event.preventDefault();  // Prevent form submission
-            alert('Please enter a valid 6-digit OTP.');
+        if (timeLeft <= 0) {
+            clearInterval(timer);  // Stop timer
+            resendElement.style.display = 'block';  // Show resend button
+            verifyButton.disabled = true;  // Disable the verify button
         }
-    });
+    }, 1000);
+}
 
-    function validateOtpForm(){
-        const otpInput=document.getElementById('otp').value;
-        const referralCode = document.getElementById('referralCode').value;
-        $.ajax({
-           
-            type:"POST",
-            url:'/verify-otp',
-            data:{otp:otpInput,
-                referralCode: referralCode,
-            },
-            success:function(response){
-                
-                if(response.success){
-                    Swal.fire({
-                        icon:"success",
-                        title:"OTP Verified Successfully",
-                        showConfirmButton:false,
-                        timer:1500,
-                    }).then(()=>{
-                        window.location.href=response.redirectUrl;
-                    })
-                }else{
-                    Swal.fire({
-                        icon:"error",
-                        title:Error,
-                        text:response.message, 
-                    })
-                }
-            },
-            error:function(){
-                Swal.fire({
-                    icon:"error",
-                    title:"Invalid OTP",
-                    text:"Please try again"
-                })
-            }
-        })
-        return false;
-    }
+// Resend OTP Logic
+resendElement.addEventListener('click', function() {
+    clearInterval(timer);
 
-    function resendOtp() {
-
-        console.log("Resend OTP clicked");
-        clearInterval(timer);
-        timeLeft = 60;
-        countdownElement.textContent = timeLeft;  
-        startTimer();
-        document.getElementById('otp').disabled = false;
-        resendElement.style.display = 'none';
+    // Reset timer values
+    timeLeft = 60;  
+    countdownElement.textContent = timeLeft;  
+    document.getElementById('otp').disabled = false;
+    resendElement.style.display = 'none';
 
     // Send AJAX request to resend OTP
     $.ajax({
@@ -222,6 +165,7 @@
                     showConfirmButton: false,
                     timer: 1500
                 });
+                startTimer();  
             } else {
                 Swal.fire({
                     icon: "error",
@@ -238,8 +182,10 @@
             });
         }
     });
-    return false;
-}
+});
+
+startTimer();
+
 
 </script>
 

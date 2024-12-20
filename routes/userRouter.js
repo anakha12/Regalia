@@ -29,7 +29,7 @@ router.get('/shop', userController.loadShop);
 router.get('/shop-details/:productId', userController.loadShopDetails);
 
 
-router.get('/userProfile',profileController.userProfile);
+router.get('/userProfile',userAuth,profileController.userProfile);
 router.get('/edit-profile',userAuth,profileController.loadEditProfile);
 router.post('/edit-profile', userAuth, profileController.postEditProfile);
 
