@@ -207,7 +207,7 @@ const editCategory= async(req,res)=>{
         let id = req.params.id;
        const {categoryName,description}=req.body;
        const existingCategory = await Category.findOne({
-        name: categoryName,
+        name: { $regex: new RegExp(`^${categoryName}$`, 'i') }, // Case-insensitive match
         _id: { $ne: id }
       });
       
